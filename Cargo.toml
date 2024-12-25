@@ -9,6 +9,7 @@ alloy-contract = "0"
 alloy-pubsub = "0"
 async-std = { version = "1.13.0", features = ["attributes", "tokio1"] }
 dotenvy = "0.15.7"
-poem = "3.1.5"
+poem = { version = "3.1.5", features = ["rustls"]}
 prometheus = "0.13.4"
 reqwest = { version = "0.12.9", features = ["rustls-tls"] }
+rustls = "0.23.20"
