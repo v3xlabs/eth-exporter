@@ -36,18 +36,14 @@ async fn update_metrics(state: &Arc<AppState>) -> anyhow::Result<()> {
         let provider = ProviderBuilder::new().on_http(chain.url.clone());
         let provider_arc = Arc::new(provider);
 
-        for wallet in &chain.wallets {
-            let provider_arc = provider_arc.clone();
+        for erc20_address in &chain.erc20s {
+            let erc20 = ERC20::new(*erc20_address, provider_arc.clone());
+            let name = erc20.name().call().await?;
+            let name = name._0;
 
-            for erc20_address in &chain.erc20s {
-                let provider_arc = provider_arc.clone();
-
-                let erc20 = ERC20::new(*erc20_address, provider_arc);
+            for wallet in &chain.wallets {
                 let balance = erc20.balanceOf(*wallet).call().await?;
                 let balance = balance._0;
-
-                let name = erc20.name().call().await?;
-                let name = name._0;
 
                 println!("{}: {}", name, balance);
 
