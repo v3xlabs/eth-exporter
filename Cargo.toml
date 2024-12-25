@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 alloy = { version = "0", features = ["full", "reqwest-rustls-tls"], default-features = false }
-alloy-contract = "0"
-alloy-pubsub = "0"
+# alloy-contract = "0"
+# alloy-pubsub = "0"
 async-std = { version = "1.13.0", features = ["attributes", "tokio1"] }
 dotenvy = "0.15.7"
 poem = { version = "3.1.5", features = ["rustls"]}
