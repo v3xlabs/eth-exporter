@@ -145,7 +145,7 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
           build-args: |
-            BINARY_PATH=./artifacts/eth-exporter
+            BINARY_PATH=./eth-exporter
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
