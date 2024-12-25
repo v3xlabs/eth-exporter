@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-alloy = { version = "0", features = ["full", "reqwest-rustls-tls"] }
+alloy = { version = "0", features = ["full", "reqwest-rustls-tls"], default-features = false }
 alloy-contract = "0"
 alloy-pubsub = "0"
 async-std = { version = "1.13.0", features = ["attributes", "tokio1"] }
