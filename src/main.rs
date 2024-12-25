@@ -1,11 +1,15 @@
 use alloy::providers::ProviderBuilder;
 use alloy::sol;
+use async_std::stream::StreamExt;
+use async_std::{future, stream};
+use futures::join;
 use poem::listener::TcpListener;
 use poem::web::Data;
 use poem::{get, handler, EndpointExt as _, Route, Server};
 use prometheus::{Encoder, TextEncoder};
 use state::AppState;
 use std::sync::Arc;
+use std::time::Duration;
 
 mod state;
 
@@ -64,8 +68,6 @@ async fn update_metrics(state: &Arc<AppState>) {
 
 #[handler]
 async fn metrics(Data(state): Data<&Arc<AppState>>) -> String {
-    update_metrics(state).await;
-
     let mut buffer = vec![];
     let encoder = TextEncoder::new();
     let metric_families = state.prometheus.gather();
@@ -84,8 +86,21 @@ pub async fn test() {
         .at("/metrics", get(metrics))
         .data(state.clone());
 
-    Server::new(TcpListener::bind("0.0.0.0:3000"))
-        .run(app)
-        .await
-        .unwrap()
+    let http = async {
+        Server::new(TcpListener::bind("0.0.0.0:3000"))
+            .run(app)
+            .await
+            .unwrap()
+    };
+
+    let updater = async {
+        update_metrics(&state).await;
+
+        let mut interval = stream::interval(Duration::from_secs(60));
+        while (interval.next().await).is_some() {
+            update_metrics(&state).await;
+        }
+    };
+
+    join!(updater, http);
 }

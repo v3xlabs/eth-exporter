@@ -10,8 +10,9 @@ alloy = { version = "0", features = [
 ], default-features = false }
 # alloy-contract = "0"
 # alloy-pubsub = "0"
-async-std = { version = "1.13.0", features = ["attributes", "tokio1"] }
+async-std = { version = "1.13.0", features = ["attributes", "tokio1", "unstable"] }
 dotenvy = "0.15.7"
+futures = "0.3.31"
 poem = { version = "3.1.5", features = ["rustls"] }
 prometheus = "0.13.4"
 reqwest = { version = "0.12.9", features = [
