@@ -1,14 +1,10 @@
-use alloy::primitives::Address;
 use alloy::providers::ProviderBuilder;
 use alloy::sol;
 use poem::listener::TcpListener;
 use poem::web::Data;
 use poem::{get, handler, EndpointExt as _, Route, Server};
 use prometheus::{Encoder, TextEncoder};
-use reqwest::Url;
 use state::AppState;
-use std::env;
-use std::str::FromStr;
 use std::sync::Arc;
 
 mod state;
@@ -32,34 +28,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn update_metrics(state: &Arc<AppState>) {
-    let rpc_url: Url = env::var("RPC_URL").unwrap().parse().unwrap();
-    let provider = ProviderBuilder::new().on_http(rpc_url);
-    let provider_arc = Arc::new(provider);
+    for chain in &state.chains {
+        let provider = ProviderBuilder::new().on_http(chain.url.clone());
+        let provider_arc = Arc::new(provider);
 
-    for wallet in &state.wallets {
-        let provider_arc = provider_arc.clone();
-
-        for erc20_address in &state.erc20s {
+        for wallet in &chain.wallets {
             let provider_arc = provider_arc.clone();
 
-            let erc20 = ERC20::new(*erc20_address, provider_arc);
-            let balance = erc20.balanceOf(*wallet).call().await.unwrap();
-            let balance = balance._0;
+            for erc20_address in &chain.erc20s {
+                let provider_arc = provider_arc.clone();
 
-            let name = erc20.name().call().await.unwrap();
-            let name = name._0;
+                let erc20 = ERC20::new(*erc20_address, provider_arc);
+                let balance = erc20.balanceOf(*wallet).call().await.unwrap();
+                let balance = balance._0;
 
-            println!("{}: {}", name, balance);
+                let name = erc20.name().call().await.unwrap();
+                let name = name._0;
 
-            let balance: u64 = balance.to_string().parse().unwrap();
+                println!("{}: {}", name, balance);
 
-            state
-                .balance_of
-                .with_label_values(&[
-                    wallet.to_string().to_lowercase().as_str(),
-                    erc20_address.to_string().to_lowercase().as_str(),
-                ])
-                .set(balance);
+                let balance: u64 = balance.to_string().parse().unwrap();
+
+                state
+                    .balance_of
+                    .with_label_values(&[
+                        chain.name.as_str(),
+                        erc20_address.to_string().to_lowercase().as_str(),
+                        wallet.to_string().to_lowercase().as_str(),
+                    ])
+                    .set(balance);
+            }
         }
     }
 }
