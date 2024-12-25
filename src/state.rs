@@ -59,7 +59,7 @@ impl AppState {
         }
 
         let opts = Opts::new("balance_of", "Balance by user by token");
-        let balance_of = GenericGaugeVec::new(opts, &["chain", "token", "user"]).unwrap();
+        let balance_of = GenericGaugeVec::new(opts, &["chain", "token", "token_name", "user"]).unwrap();
         prometheus.register(Box::new(balance_of.clone())).unwrap();
 
         Self {

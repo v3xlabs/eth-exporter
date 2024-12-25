@@ -54,6 +54,7 @@ async fn update_metrics(state: &Arc<AppState>) -> anyhow::Result<()> {
                     .with_label_values(&[
                         chain.name.as_str(),
                         erc20_address.to_string().to_lowercase().as_str(),
+                        name.as_str(),
                         wallet.to_string().to_lowercase().as_str(),
                     ])
                     .set(balance);
