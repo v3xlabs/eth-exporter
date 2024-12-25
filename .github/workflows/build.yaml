@@ -8,11 +8,11 @@ on:
 
 # Set up some global variables we'll use throughout
 env:
-    REGISTRY: ghcr.io
-    IMAGE_NAME: v3xlabs/v3x-property/rpc-to-prom
-    BINARY_NAME: rpc-to-prom
-    DOCKER_BUILDKIT: 1 # Enable BuildKit
-    COMPOSE_DOCKER_CLI_BUILD: 1
+  REGISTRY: ghcr.io
+  IMAGE_NAME: v3xlabs/v3x-property/rpc-to-prom
+  BINARY_NAME: rpc-to-prom
+  DOCKER_BUILDKIT: 1 # Enable BuildKit
+  COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
   build:
@@ -145,7 +145,7 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
           build-args: |
-            BINARY_PATH=./artifacts/rpc-to-prom
+            BINARY_PATH=./rpc-to-prom
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
