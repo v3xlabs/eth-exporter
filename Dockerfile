@@ -18,14 +18,14 @@ USER dockeruser
 
 # Application Configuration
 # -----------------------
-# RUST_LOG: Logging configuration (default: error,rpc-to-prom=info)
-ENV RUST_LOG="error,rpc-to-prom=info"
+# RUST_LOG: Logging configuration (default: error,eth-exporter=info)
+ENV RUST_LOG="error,eth-exporter=info"
 
 # Binary Installation
 # -----------------
 # BINARY_PATH: Path to the pre-compiled binary from GitHub Actions
 ARG BINARY_PATH
-COPY ${BINARY_PATH} /rpc-to-prom
+COPY ${BINARY_PATH} /eth-exporter
 
 # Network Configuration
 # -------------------
@@ -34,4 +34,4 @@ EXPOSE 3000
 # Application Startup
 # -----------------
 # Using exec form of CMD as there is no shell in scratch image
-CMD ["/rpc-to-prom"]
+CMD ["/eth-exporter"]

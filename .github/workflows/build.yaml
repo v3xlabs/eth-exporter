@@ -8,11 +8,11 @@ on:
 
 # Set up some global variables we'll use throughout
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: v3xlabs/v3x-property/rpc-to-prom
-  BINARY_NAME: rpc-to-prom
-  DOCKER_BUILDKIT: 1 # Enable BuildKit
-  COMPOSE_DOCKER_CLI_BUILD: 1
+    REGISTRY: ghcr.io
+    IMAGE_NAME: v3xlabs/eth-exporter
+    BINARY_NAME: eth-exporter
+    DOCKER_BUILDKIT: 1 # Enable BuildKit
+    COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
   build:
@@ -72,7 +72,7 @@ jobs:
       - name: Upload built binary as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rpc-to-prom-${{ matrix.platform.arch }}
+          name: eth-exporter-${{ matrix.platform.arch }}
           path: target/${{ matrix.platform.arch }}/release/${{ env.BINARY_NAME }}
           retention-days: 1 # Save storage by cleaning up quickly
           compression-level: 9 # Maximum compression
@@ -99,14 +99,14 @@ jobs:
       # 📥 Grab our built binary
       - name: Download built binary
         uses: actions/download-artifact@v4
-        id: rpc-to-prom-binary
+        id: eth-exporter-binary
         with:
-          name: rpc-to-prom-${{ matrix.platform.arch }}
+          name: eth-exporter-${{ matrix.platform.arch }}
           path: artifacts
 
       - name: Prepare artifacts
         run: |
-          chmod 755 ./artifacts/rpc-to-prom
+          chmod 755 ./artifacts/eth-exporter
           ls -la ./artifacts
 
       # Set up QEMU for multi-arch builds
@@ -145,7 +145,7 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
           build-args: |
-            BINARY_PATH=./rpc-to-prom
+            BINARY_PATH=./artifacts/eth-exporter
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

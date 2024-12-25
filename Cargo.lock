@@ -1508,6 +1508,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "eth-exporter"
+version = "0.1.0"
+dependencies = [
+ "alloy",
+ "async-std",
+ "dotenvy",
+ "poem",
+ "prometheus",
+ "reqwest",
+ "rustls 0.23.20",
+]
+
+[[package]]
 name = "event-listener"
 version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3058,19 +3071,6 @@ checksum = "bb919243f34364b6bd2fc10ef797edbfa75f33c252e7998527479c6d6b47e1ec"
 dependencies = [
  "bytes",
  "rustc-hex",
-]
-
-[[package]]
-name = "rpc-to-prom"
-version = "0.1.0"
-dependencies = [
- "alloy",
- "async-std",
- "dotenvy",
- "poem",
- "prometheus",
- "reqwest",
- "rustls 0.23.20",
 ]
 
 [[package]]
