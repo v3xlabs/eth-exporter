@@ -8,6 +8,7 @@ alloy = { version = "0", features = [
     "full",
     "reqwest-rustls-tls",
 ], default-features = false }
+anyhow = "1.0.95"
 # alloy-contract = "0"
 # alloy-pubsub = "0"
 async-std = { version = "1.13.0", features = ["attributes", "tokio1", "unstable"] }

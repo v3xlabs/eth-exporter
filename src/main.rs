@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn update_metrics(state: &Arc<AppState>) {
+async fn update_metrics(state: &Arc<AppState>) -> anyhow::Result<()> {
     for chain in &state.chains {
         let provider = ProviderBuilder::new().on_http(chain.url.clone());
         let provider_arc = Arc::new(provider);
@@ -43,15 +43,15 @@ async fn update_metrics(state: &Arc<AppState>) {
                 let provider_arc = provider_arc.clone();
 
                 let erc20 = ERC20::new(*erc20_address, provider_arc);
-                let balance = erc20.balanceOf(*wallet).call().await.unwrap();
+                let balance = erc20.balanceOf(*wallet).call().await?;
                 let balance = balance._0;
 
-                let name = erc20.name().call().await.unwrap();
+                let name = erc20.name().call().await?;
                 let name = name._0;
 
                 println!("{}: {}", name, balance);
 
-                let balance: u64 = balance.to_string().parse().unwrap();
+                let balance: u64 = balance.to_string().parse()?;
 
                 state
                     .balance_of
@@ -64,6 +64,8 @@ async fn update_metrics(state: &Arc<AppState>) {
             }
         }
     }
+
+    Ok(())
 }
 
 #[handler]
@@ -94,11 +96,11 @@ pub async fn test() {
     };
 
     let updater = async {
-        update_metrics(&state).await;
+        update_metrics(&state).await.ok();
 
         let mut interval = stream::interval(Duration::from_secs(60));
         while (interval.next().await).is_some() {
-            update_metrics(&state).await;
+            update_metrics(&state).await.ok();
         }
     };
 
