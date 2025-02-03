@@ -47,7 +47,7 @@ async fn update_metrics(state: &Arc<AppState>) -> anyhow::Result<()> {
 
                 println!("{}: {}", name, balance);
 
-                let balance: u64 = balance.to_string().parse()?;
+                let balance: f64 = balance.to_string().parse()?;
 
                 state
                     .balance_of

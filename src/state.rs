@@ -2,7 +2,7 @@ use std::{env, str::FromStr};
 
 use alloy::primitives::Address;
 use prometheus::{
-    core::{AtomicU64, GenericGaugeVec},
+    core::{AtomicF64, AtomicU64, GenericGaugeVec},
     Opts, Registry,
 };
 use reqwest::Url;
@@ -17,7 +17,8 @@ pub struct Chain {
 
 pub struct AppState {
     pub prometheus: Registry,
-    pub balance_of: GenericGaugeVec<AtomicU64>,
+    pub balance_of: GenericGaugeVec<AtomicF64>,
+    // pub balance_of_usd: GenericGaugeVec<AtomicF64>,
 
     pub chains: Vec<Chain>,
 }
