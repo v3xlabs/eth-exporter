@@ -1484,7 +1484,6 @@ name = "eth-exporter"
 version = "0.1.0"
 dependencies = [
  "alloy",
- "alloy-transport-http",
  "anyhow",
  "async-std",
  "dotenvy",
@@ -3029,7 +3028,8 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 [[package]]
 name = "reqwest"
 version = "0.12.12"
-source = "git+https://github.com/seanmonstar/reqwest#37074368012ce42e61e5649c2fffcf8c8a979e1e"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43e734407157c3c2034e0258f5e4473ddb361b1e85f95a66690d67264d7cd1da"
 dependencies = [
  "base64 0.22.1",
  "bytes",
