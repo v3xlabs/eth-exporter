@@ -28,4 +28,7 @@ reqwest = { version = "0.12.9", features = [
     "macos-system-configuration",
 ], default-features = false }
 rustls = "0.23.20"
-uniswap-v3-sdk = { version = "3.5.0", features = ["extensions", "std"] }
+uniswap-v3-sdk = { git = "https://github.com/v3xlabs/uniswap-v3-sdk-rs", branch = "master", features = [
+    "extensions",
+    "std",
+] }
