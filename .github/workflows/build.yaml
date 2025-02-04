@@ -19,9 +19,9 @@ jobs:
     strategy:
       matrix:
         platform:
-          - arch: x86_64-unknown-linux-gnu
+          - arch: x86_64-unknown-linux-musl
             docker: linux/amd64
-          - arch: aarch64-unknown-linux-gnu
+          - arch: aarch64-unknown-linux-musl
             docker: linux/arm64
     timeout-minutes: 20 # Prevent hanging builds
     runs-on: ubuntu-latest
@@ -34,9 +34,6 @@ jobs:
       # Set up Rust with the specific target we need
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal --no-self-update
-
-      - name: Install libssl-dev
-        run: sudo apt-get install libssl-dev
 
       # Speed up builds by caching dependencies
       - name: Cache Rust
@@ -69,22 +66,7 @@ jobs:
         env:
           BINARY_NAME: ${{ env.BINARY_NAME }}
           SQLX_OFFLINE: true # Use prepared SQL queries
-          CROSS_CONTAINER_OPTS: "--platform linux/${{ matrix.platform.docker }}"
-        run: |
-          mkdir -p .cargo
-          echo '[target.${{ matrix.platform.arch }}]' > .cargo/config.toml
-          echo 'dockerfile = "Cross.toml"' >> .cargo/config.toml
-          
-          # Create Cross.toml with custom Dockerfile contents
-          cat > Cross.toml << 'EOF'
-          [build.env]
-          passthrough = ["SQLX_OFFLINE"]
-          
-          [target.${{ matrix.platform.arch }}]
-          pre-build = ["apt-get update && apt-get install -y libssl-dev"]
-          EOF
-          
-          cross build --target ${{ matrix.platform.arch }} --release
+        run: cross build --target ${{ matrix.platform.arch }} --release
 
       # 📦 Save our binary for later
       - name: Upload built binary as artifact
@@ -106,9 +88,9 @@ jobs:
     strategy:
       matrix:
         platform:
-          - arch: x86_64-unknown-linux-gnu
+          - arch: x86_64-unknown-linux-musl
             docker: linux/amd64
-          - arch: aarch64-unknown-linux-gnu
+          - arch: aarch64-unknown-linux-musl
             docker: linux/arm64
     steps:
       - name: Checkout
