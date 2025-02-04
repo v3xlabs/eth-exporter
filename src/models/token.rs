@@ -107,32 +107,9 @@ impl IndexableTokenERC20 {
         {
             println!("Updating USD price for stETH {}", self.address);
 
-            let pool_address: Address = "0x6c83b0feef04139eb5520b1ce0e78069c6e7e2c5"
+            let usdc_address: Address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
                 .parse()
                 .unwrap();
-            let USDC_ADDRESS: Address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-                .parse()
-                .unwrap();
-
-            let provider = self.erc20.provider().clone();
-
-            let last_block = provider.get_block_number().await.unwrap();
-
-            // let pool = Pool::<EphemeralTickMapDataProvider>::from_pool_key_with_tick_data_provider(
-            //     1,
-            //     FACTORY_ADDRESS,
-            //     self.address,
-            //     USDC_ADDRESS,
-            //     FeeAmount::HIGH,
-            //     provider,
-            //     Some(BlockId::Number(last_block.into())),
-            // )
-            // .await
-            // .unwrap();
-
-            // let p = pool.price_of(&pool.token0).unwrap();
-            // univ3pool 0x6c83b0feef04139eb5520b1ce0e78069c6e7e2c5
-            // let usd_price = p.adjusted_for_decimals().to_decimal().to_string().parse::<f64>().unwrap();
 
             let decimals = *self.decimals.lock().await;
 
@@ -142,10 +119,12 @@ impl IndexableTokenERC20 {
                     .unwrap(),
                 self.erc20.provider().clone(),
             );
+            let weth_address = Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+                .unwrap();
             let usd_price = pool
                 .quoteExactInputSingle(
-                    self.address,
-                    USDC_ADDRESS,
+                    weth_address,
+                    usdc_address,
                     FeeAmount::MEDIUM.into(),
                     U256::from(10).pow(U256::from(decimals)),
                     U160::from(0),
