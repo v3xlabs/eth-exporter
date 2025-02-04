@@ -1,7 +1,5 @@
-use alloy::providers::ProviderBuilder;
-use alloy::sol;
+use async_std::stream;
 use async_std::stream::StreamExt;
-use async_std::{future, stream};
 use futures::join;
 use poem::listener::TcpListener;
 use poem::web::Data;
@@ -11,18 +9,8 @@ use state::AppState;
 use std::sync::Arc;
 use std::time::Duration;
 
+mod models;
 mod state;
-
-// erc20 interface
-sol! {
-    #[allow(missing_docs)]
-    #[sol(rpc)]
-    #[derive(Debug, PartialEq, Eq)]
-    interface ERC20 {
-        function balanceOf(address owner) external view returns (uint256);
-        function name() external view returns (string memory);
-    }
-}
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -33,27 +21,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn update_metrics(state: &Arc<AppState>) -> anyhow::Result<()> {
     for chain in &state.chains {
-        let provider = ProviderBuilder::new().on_http(chain.url.clone());
-        let provider_arc = Arc::new(provider);
-
         for erc20_address in &chain.erc20s {
-            let erc20 = ERC20::new(*erc20_address, provider_arc.clone());
-            let name = erc20.name().call().await?;
-            let name = name._0;
+            let name = erc20_address.name.lock().await;
 
             for wallet in &chain.wallets {
-                let balance = erc20.balanceOf(*wallet).call().await?;
+                let balance = erc20_address.erc20.balanceOf(*wallet).call().await?;
                 let balance = balance._0;
-
-                println!("{}: {}", name, balance);
+                let decimals = erc20_address.decimals.lock().await;
+                let decimals = *decimals as f64;
 
                 let balance: f64 = balance.to_string().parse()?;
+                let balance = balance / 10_f64.powf(decimals);
 
+                println!("{}: {}", name, balance);
+                
                 state
                     .balance_of
                     .with_label_values(&[
                         chain.name.as_str(),
-                        erc20_address.to_string().to_lowercase().as_str(),
+                        erc20_address.address.to_string().to_lowercase().as_str(),
                         name.as_str(),
                         wallet.to_string().to_lowercase().as_str(),
                     ])
@@ -77,7 +63,7 @@ async fn metrics(Data(state): Data<&Arc<AppState>>) -> String {
 pub async fn test() {
     dotenvy::dotenv().ok();
 
-    let state = AppState::new();
+    let state = AppState::new().await;
 
     let state = Arc::new(state);
 
