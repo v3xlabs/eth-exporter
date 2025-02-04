@@ -141,6 +141,17 @@ impl IndexableTokenERC20 {
 
             *self.usd_price.lock().await = amount_in_usd;
         }
+
+        if self.chain_slug == "polygon"
+            && self.address
+                == Address::from_str("0x625e7708f30ca75bfd92586e17077590c60eb4cd").unwrap()
+        {
+            println!("Updating USD price for USDC {}", self.address);
+
+            let usd_price = 1.0;
+
+            *self.usd_price.lock().await = usd_price;
+        }
     }
 
     pub async fn update_decimals(&self) {
