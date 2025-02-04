@@ -69,7 +69,22 @@ jobs:
         env:
           BINARY_NAME: ${{ env.BINARY_NAME }}
           SQLX_OFFLINE: true # Use prepared SQL queries
-        run: cross build --target ${{ matrix.platform.arch }} --release
+          CROSS_CONTAINER_OPTS: "--platform linux/${{ matrix.platform.docker }}"
+        run: |
+          mkdir -p .cargo
+          echo '[target.${{ matrix.platform.arch }}]' > .cargo/config.toml
+          echo 'dockerfile = "Cross.toml"' >> .cargo/config.toml
+          
+          # Create Cross.toml with custom Dockerfile contents
+          cat > Cross.toml << 'EOF'
+          [build.env]
+          passthrough = ["SQLX_OFFLINE"]
+          
+          [target.${{ matrix.platform.arch }}]
+          pre-build = ["apt-get update && apt-get install -y libssl-dev"]
+          EOF
+          
+          cross build --target ${{ matrix.platform.arch }} --release
 
       # 📦 Save our binary for later
       - name: Upload built binary as artifact
