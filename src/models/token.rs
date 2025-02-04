@@ -1,14 +1,21 @@
-use std::{ops::Deref, str::FromStr, sync::Arc};
+use std::{ops::{Deref, Div}, str::FromStr, sync::Arc};
 
 use alloy::{
     eips::BlockId,
     network::{AnyNetwork, Ethereum, Network},
-    primitives::{aliases::U24, Address, U160, U256},
+    primitives::{aliases::U24, Address, Uint, U160, U256},
     providers::{Provider, RootProvider},
     transports::{http::Http, Transport},
 };
 use async_std::sync::Mutex;
 use reqwest::Client;
+use uniswap_v3_sdk::{
+    prelude::{
+        sdk_core::prelude::FractionBase, EphemeralTickMapDataProvider, FeeAmount, Pool,
+        FACTORY_ADDRESS,
+    },
+    utils::ToBig,
+};
 
 use crate::{
     models::erc20::{UniswapV2Pool, ERC20},
@@ -41,11 +48,9 @@ impl IndexableTokenERC20 {
             usd_price: Mutex::new(0 as f64),
         };
 
-        futures::join!(
-            me.update_name(),
-            me.update_usd_price(),
-            me.update_decimals()
-        );
+        me.update_name().await;
+        me.update_decimals().await;
+        me.update_usd_price().await;
 
         me
     }
@@ -62,34 +67,7 @@ impl IndexableTokenERC20 {
             && self.address
                 == Address::from_str("0xc18360217d8f7ab5e7c516566761ea12ce7f9d72").unwrap()
         {
-            println!("Updating USD price for {}", self.address);
-
-            // quoter 0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6
-            // let quoter_address =
-            //     Address::from_str("0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6").unwrap();
-            // let usdc_address =
-            //     Address::from_str("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48").unwrap();
-            // let amount = U256::from(1000000000000000000 as i64);
-            // let fee = U24::from(500);
-            // let sqrt_price_limit = U160::from(0);
-
-            // let quoter = UniswapV3Quoter::new(quoter_address, self.erc20.provider().clone());
-            // let usd_price = match quoter
-            // .quoteExactInputSingle(
-            //     self.address,
-            //     usdc_address,
-            //     fee,
-            //     amount,
-            //     sqrt_price_limit,
-            // )
-            // .call()
-            // .await {
-            //     Ok(usd_price) => usd_price.amountOut,
-            //     Err(e) => {
-            //         println!("Error getting USD price: {}", e);
-            //         return;
-            //     }
-            // };
+            println!("Updating USD price for ENS {}", self.address);
 
             let pool_address: Address = "0xb169c3e8dda6456a18aefa49c58f7f53e120a9b4"
                 .parse()
@@ -116,7 +94,7 @@ impl IndexableTokenERC20 {
             Address::from_str("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48").unwrap(),
         ];
         if self.chain_slug == "eth" && usdcs.contains(&self.address) {
-            println!("Updating USD price for {}", self.address);
+            println!("Updating USD price for USDC {}", self.address);
 
             let usd_price = 1.0;
 
@@ -127,7 +105,7 @@ impl IndexableTokenERC20 {
             && self.address
                 == Address::from_str("0xae7ab96520de3a18e5e111b5eaab095312d7fe84").unwrap()
         {
-            println!("Updating USD price for {}", self.address);
+            println!("Updating USD price for stETH {}", self.address);
 
             let pool_address: Address = "0x6c83b0feef04139eb5520b1ce0e78069c6e7e2c5"
                 .parse()
@@ -138,22 +116,51 @@ impl IndexableTokenERC20 {
 
             let provider = self.erc20.provider().clone();
 
+            let last_block = provider.get_block_number().await.unwrap();
+
             // let pool = Pool::<EphemeralTickMapDataProvider>::from_pool_key_with_tick_data_provider(
             //     1,
             //     FACTORY_ADDRESS,
             //     self.address,
             //     USDC_ADDRESS,
-            //     FeeAmount::LOW,
+            //     FeeAmount::HIGH,
             //     provider,
-            //     Some(BlockId::latest()),
+            //     Some(BlockId::Number(last_block.into())),
             // )
             // .await
-            // .unwrap;
+            // .unwrap();
 
+            // let p = pool.price_of(&pool.token0).unwrap();
             // univ3pool 0x6c83b0feef04139eb5520b1ce0e78069c6e7e2c5
-            let usd_price = 1.0;
+            // let usd_price = p.adjusted_for_decimals().to_decimal().to_string().parse::<f64>().unwrap();
 
-            *self.usd_price.lock().await = usd_price;
+            let decimals = *self.decimals.lock().await;
+
+            let pool = UniswapV3Quoter::new(
+                "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
+                    .parse()
+                    .unwrap(),
+                self.erc20.provider().clone(),
+            );
+            let usd_price = pool
+                .quoteExactInputSingle(
+                    self.address,
+                    USDC_ADDRESS,
+                    FeeAmount::MEDIUM.into(),
+                    U256::from(10).pow(U256::from(decimals)),
+                    U160::from(0),
+                )
+                .call()
+                .await
+                .unwrap();
+
+            println!("usd_price: {:?}", usd_price);
+
+            let amount_in_usdc = usd_price.amountOut;
+            let amount_in_usdc = amount_in_usdc.to_string().parse::<f64>().unwrap();
+            let amount_in_usd = amount_in_usdc.div(10_f64.powf(6.0));
+
+            *self.usd_price.lock().await = amount_in_usd;
         }
     }
 
