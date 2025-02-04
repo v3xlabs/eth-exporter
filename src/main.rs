@@ -27,6 +27,9 @@ async fn update_metrics(state: &Arc<AppState>) -> anyhow::Result<()> {
     for chain in &state.chains {
         for erc20_address in &chain.erc20s {
             let name = erc20_address.name.lock().await;
+
+            erc20_address.update_usd_price().await;
+
             let usd_price = erc20_address.usd_price.lock().await;
 
             for wallet in &chain.wallets {
