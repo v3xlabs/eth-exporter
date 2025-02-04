@@ -1,6 +1,8 @@
 use std::{env, str::FromStr, sync::Arc};
 
-use alloy::{primitives::Address, providers::ProviderBuilder};
+use alloy::{
+    network::Ethereum, primitives::Address, providers::ProviderBuilder, transports::http::Http,
+};
 use futures::future::join_all;
 use prometheus::{
     core::{AtomicF64, GenericGaugeVec},
@@ -8,7 +10,7 @@ use prometheus::{
 };
 use reqwest::Url;
 
-use crate::models::token::IndexableTokenERC20;
+use crate::{models::token::IndexableTokenERC20, MyProvider};
 
 #[derive(Debug)]
 pub struct Chain {
@@ -21,7 +23,8 @@ pub struct Chain {
 pub struct AppState {
     pub prometheus: Registry,
     pub balance_of: GenericGaugeVec<AtomicF64>,
-    // pub balance_of_usd: GenericGaugeVec<AtomicF64>,
+    pub balance_of_usd: GenericGaugeVec<AtomicF64>,
+    pub price_in_usd: GenericGaugeVec<AtomicF64>,
     pub chains: Vec<Chain>,
 }
 
@@ -58,7 +61,10 @@ impl AppState {
                     .map(|s| Address::from_str(s.trim_start_matches("0x")).unwrap())
                     .collect();
 
-            let erc20s = join_all(erc20s.iter().map(|addr| IndexableTokenERC20::new(*addr, provider_arc.clone()))).await;
+            let erc20s = join_all(erc20s.iter().map(|addr| {
+                IndexableTokenERC20::new(*addr, chain.to_string(), provider_arc.clone())
+            }))
+            .await;
 
             chains.push(Chain {
                 name: chain.to_string(),
@@ -73,9 +79,22 @@ impl AppState {
             GenericGaugeVec::new(opts, &["chain", "token", "token_name", "user"]).unwrap();
         prometheus.register(Box::new(balance_of.clone())).unwrap();
 
+        let opts = Opts::new("balance_of_usd", "Balance by user by token in USD");
+        let balance_of_usd =
+            GenericGaugeVec::new(opts, &["chain", "token", "token_name", "user"]).unwrap();
+        prometheus
+            .register(Box::new(balance_of_usd.clone()))
+            .unwrap();
+
+        let opts = Opts::new("price_of_usd", "Price in USD");
+        let price_in_usd = GenericGaugeVec::new(opts, &["chain", "token", "token_name"]).unwrap();
+        prometheus.register(Box::new(price_in_usd.clone())).unwrap();
+
         Self {
             prometheus,
             balance_of,
+            balance_of_usd,
+            price_in_usd,
             chains,
         }
     }
