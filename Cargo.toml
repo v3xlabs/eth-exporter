@@ -5,13 +5,17 @@ edition = "2021"
 
 [dependencies]
 alloy = { version = "0.11", features = [
-    "full",
+    "contract",
     "reqwest-rustls-tls",
 ], default-features = false }
 anyhow = "1.0.95"
 # alloy-contract = "0"
 # alloy-pubsub = "0"
-async-std = { version = "1.13.0", features = ["attributes", "tokio1", "unstable"] }
+async-std = { version = "1.13.0", features = [
+    "attributes",
+    "tokio1",
+    "unstable",
+] }
 dotenvy = "0.15.7"
 futures = "0.3.31"
 poem = { version = "3.1.5", features = ["rustls"] }
@@ -24,4 +28,14 @@ reqwest = { version = "0.12.9", features = [
     "macos-system-configuration",
 ], default-features = false }
 rustls = "0.23.20"
-uniswap-v3-sdk = { version = "3.4.0", features = ["extensions"] }
+uniswap-v3-sdk = { version = "3.4.0", features = ["extensions", "std"] }
+
+[dependencies.alloy-transport-http]
+version = "0.11.0"
+default-features = false
+features = ["reqwest", "reqwest-rustls-tls"]
+
+[patch.crates-io]
+reqwest = { git = "https://github.com/seanmonstar/reqwest", version = "0.12.9", default-features = false, features = [
+    "rustls-tls",
+] }
