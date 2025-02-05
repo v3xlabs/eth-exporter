@@ -102,3 +102,8 @@ price_of_usd{chain="eth",token="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",toke
 price_of_usd{chain="eth",token="0xae7ab96520de3a18e5e111b5eaab095312d7fe84",token_name="Liquid staked Ether 2.0"} 2739.368131
 price_of_usd{chain="eth",token="0xc18360217d8f7ab5e7c516566761ea12ce7f9d72",token_name="Ethereum Name Service"} 27.32616832726908
 ```
+
+## Grafana Dashboard
+
+A sample grafana dashboard is currently under development however any contributions are welcome.
+The development environment does not yet come with a pre-configured grafana dashboard, however it does come with a pre-configured grafana and prometheus setup (see [app/compose.yml](./app/compose.yml)).
