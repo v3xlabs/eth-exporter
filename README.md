@@ -82,7 +82,7 @@ The output is a prometheus metrics endpoint that you can scrape from your promet
 
 A sample output using the [example config.toml](./config.toml) file is shown below:
 
-```json
+```raw
 # HELP balance_of Balance by user by token
 # TYPE balance_of gauge
 balance_of{chain="eth",token="0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",token_name="Aave Ethereum USDC",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 0
