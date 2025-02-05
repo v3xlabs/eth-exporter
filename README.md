@@ -32,7 +32,7 @@ address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
 fixed_rate = 1.0
 ```
 
-However feel free to steal the [example.config.toml](./example.config.toml) file (and update the `wallets` field) and modify it to your liking.
+However feel free to steal the [example config.toml](./config.toml) file (update the `wallets` field) and modify it to your liking.
 
 ### Specifying a Token Exchange Rate
 
