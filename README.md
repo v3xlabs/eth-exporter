@@ -16,11 +16,11 @@ services:
       - ./config.toml:/config.toml
 ```
 
-Et voila, your metrics are now available at `http://localhost:3000/metrics`.
+Et voila, your metrics are now available at [/metrics](http://localhost:3000/metrics).
 
 ## Configuration
 
-You can setup your `config.toml` like the following:
+A basic configuration for your `config.toml` looks like this:
 
 ```toml
 [tokens.eth]
@@ -32,11 +32,17 @@ address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
 fixed_rate = 1.0
 ```
 
+However feel free to steal the [example.config.toml](./example.config.toml) file (and update the `wallets` field) and modify it to your liking.
+
 ### Specifying a Token Exchange Rate
+
+There are a few ways you can specify what exchange rate you want to use for a token.
+Specifying an exchange rate for a token is optional however does provide you with the `balance_of_usd` and `price_in_usd` metrics.
 
 #### Fixed Rate
 
 You can specify a fixed rate for a token by setting the `fixed_rate` field to a value.
+This can be helpful for pegged tokens or tokens whose exchange rate you do not want to compute.
 
 ```toml
 [tokens.eth.usdc]
@@ -47,6 +53,7 @@ fixed_rate = 1.0
 #### Uniswap V2
 
 You can specify a Uniswap V2 pool address to use for the token.
+In the below example we are using the [ENS/USDC](https://etherscan.io/address/0xb169c3e8dda6456a18aefa49c58f7f53e120a9b4) pool to calculate ENS/USDC price.
 
 ```toml
 [tokens.eth.ens]
@@ -54,14 +61,14 @@ address = "0xc18360217d8f7ab5e7c516566761ea12ce7f9d72"
 uniswap_v2 = "0xb169c3e8dda6456a18aefa49c58f7f53e120a9b4"
 ```
 
-> For now only */USDC pairs are supported.
+> For now only `*/USDC` pairs are supported.
 
 #### Uniswap V3
 
 You can specify a Uniswap V3 from token address to use for the token.
 In the below example we are using the WETH token address to calculate WETH/USDC price.
 
-> For now only */USDC pairs are supported.
+> For now only `*/USDC` pairs are supported.
 
 ```toml
 [tokens.eth.steth]
