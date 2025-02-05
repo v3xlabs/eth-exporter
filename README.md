@@ -75,3 +75,30 @@ In the below example we are using the WETH token address to calculate WETH/USDC 
 address = "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"
 uniswap_v3 = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 ```
+
+## Output
+
+The output is a prometheus metrics endpoint that you can scrape from your prometheus instance.
+
+A sample output using the [example config.toml](./config.toml) file is shown below:
+
+```json
+# HELP balance_of Balance by user by token
+# TYPE balance_of gauge
+balance_of{chain="eth",token="0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",token_name="Aave Ethereum USDC",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 0
+balance_of{chain="eth",token="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",token_name="USD Coin",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 82998.03958
+balance_of{chain="eth",token="0xae7ab96520de3a18e5e111b5eaab095312d7fe84",token_name="Liquid staked Ether 2.0",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 0
+balance_of{chain="eth",token="0xc18360217d8f7ab5e7c516566761ea12ce7f9d72",token_name="Ethereum Name Service",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 1144.0360760636715
+# HELP balance_of_usd Balance by user by token in USD
+# TYPE balance_of_usd gauge
+balance_of_usd{chain="eth",token="0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",token_name="Aave Ethereum USDC",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 0
+balance_of_usd{chain="eth",token="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",token_name="USD Coin",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 82998.03958
+balance_of_usd{chain="eth",token="0xae7ab96520de3a18e5e111b5eaab095312d7fe84",token_name="Liquid staked Ether 2.0",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 0
+balance_of_usd{chain="eth",token="0xc18360217d8f7ab5e7c516566761ea12ce7f9d72",token_name="Ethereum Name Service",user="0xd8da6bf26964af9d7eed9e03e53415d37aa96045"} 31262.1223869843
+# HELP price_of_usd Price in USD
+# TYPE price_of_usd gauge
+price_of_usd{chain="eth",token="0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",token_name="Aave Ethereum USDC"} 1
+price_of_usd{chain="eth",token="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",token_name="USD Coin"} 1
+price_of_usd{chain="eth",token="0xae7ab96520de3a18e5e111b5eaab095312d7fe84",token_name="Liquid staked Ether 2.0"} 2739.368131
+price_of_usd{chain="eth",token="0xc18360217d8f7ab5e7c516566761ea12ce7f9d72",token_name="Ethereum Name Service"} 27.32616832726908
+```
