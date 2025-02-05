@@ -22,7 +22,7 @@ uniswap_v2 = "0xb169c3e8dda6456a18aefa49c58f7f53e120a9b4"
 
 [tokens.polygon]
 rpc_url = "https://polygon.blockscout.com/api/eth-rpc"
-wallets = [""]
+wallets = ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"]
 
 [tokens.polygon.usdc]
 address = "0x625e7708f30ca75bfd92586e17077590c60eb4cd"
