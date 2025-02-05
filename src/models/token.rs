@@ -18,8 +18,7 @@ use uniswap_v3_sdk::{
 };
 
 use crate::{
-    models::erc20::{UniswapV2Pool, ERC20},
-    MyProvider,
+    models::erc20::{UniswapV2Pool, ERC20}, state::TokenConfigTest, MyProvider
 };
 
 use super::erc20::UniswapV3Quoter;
@@ -33,11 +32,16 @@ pub struct IndexableTokenERC20 {
     pub name: Mutex<String>,
     pub decimals: Mutex<u8>,
     pub usd_price: Mutex<f64>,
+
+    pub fixed_rate: Option<f64>,
+    pub uniswap_v2: Option<String>,
+    pub uniswap_v3: Option<String>,
 }
 
 impl IndexableTokenERC20 {
-    pub async fn new(address: Address, chain_slug: String, provider: Arc<MyProvider>) -> Self {
-        let erc20 = ERC20::new(address, provider);
+    pub async fn new(config: &TokenConfigTest, chain_slug: String, provider: Arc<MyProvider>) -> Self {
+        let erc20 = ERC20::new(config.address.parse().unwrap(), provider);
+        let address = config.address.parse().unwrap();
 
         let me = Self {
             address,
@@ -46,6 +50,9 @@ impl IndexableTokenERC20 {
             name: Mutex::new(String::new()),
             decimals: Mutex::new(0),
             usd_price: Mutex::new(0 as f64),
+            fixed_rate: config.fixed_rate,
+            uniswap_v2: config.uniswap_v2.clone(),
+            uniswap_v3: config.uniswap_v3.clone(),
         };
 
         me.update_name().await;

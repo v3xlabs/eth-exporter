@@ -32,3 +32,5 @@ uniswap-v3-sdk = { git = "https://github.com/v3xlabs/uniswap-v3-sdk-rs", branch 
     "extensions",
     "std",
 ] }
+serde = { version = "1.0.200", features = ["derive"] }
+figment = { version = "0.10.19", features = ["toml", "json", "env"] }

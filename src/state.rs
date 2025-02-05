@@ -1,7 +1,12 @@
 use std::{env, str::FromStr, sync::Arc};
 
+use crate::{models::token::IndexableTokenERC20, MyProvider};
 use alloy::{
     network::Ethereum, primitives::Address, providers::ProviderBuilder, transports::http::Http,
+};
+use figment::{
+    providers::{Format, Toml},
+    Figment,
 };
 use futures::future::join_all;
 use prometheus::{
@@ -9,8 +14,7 @@ use prometheus::{
     Opts, Registry,
 };
 use reqwest::Url;
-
-use crate::{models::token::IndexableTokenERC20, MyProvider};
+use serde::Deserialize;
 
 #[derive(Debug)]
 pub struct Chain {
@@ -28,46 +32,67 @@ pub struct AppState {
     pub chains: Vec<Chain>,
 }
 
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ConfigTest {
+    pub tokens: std::collections::HashMap<String, ChainConfig>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ChainConfig {
+    pub rpc_url: String,
+    pub wallets: Vec<String>,
+    #[serde(flatten)]
+    pub tokens: std::collections::HashMap<String, TokenConfigTest>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct TokenConfigTest {
+    pub address: String,
+    pub fixed_rate: Option<f64>,
+    pub uniswap_v2: Option<String>,
+    pub uniswap_v3: Option<String>,
+}
+
 impl AppState {
     pub async fn new() -> Self {
         let prometheus = Registry::new();
 
-        let chain_slugs = vec!["eth", "polygon"];
+        // load config test
+        let figment = Figment::new().merge(Toml::file("config.toml"));
+        let config = figment.extract::<ConfigTest>().unwrap();
+        println!("Loaded config: {:#?}", config);
 
         let mut chains = Vec::new();
-        for chain in chain_slugs {
-            let url = env::var(format!("{}_RPC_URL", chain.to_uppercase())).ok();
-            if url.is_none() {
-                println!("No RPC URL for chain {}", chain);
-                continue;
-            }
+        for (chain_slug, chain_config) in config.tokens {
+            let url = chain_config.rpc_url;
 
-            let url = Url::parse(&url.unwrap()).unwrap();
+            let url = Url::parse(&url).unwrap();
 
             let provider = ProviderBuilder::new().on_http(url.clone());
             let provider_arc = Arc::new(provider);
 
-            let wallets: Vec<Address> =
-                env::var(format!("{}_WALLET_ADDRESSES", chain.to_uppercase()))
-                    .unwrap()
-                    .split(',')
-                    .map(|s| Address::from_str(s.trim_start_matches("0x")).unwrap())
-                    .collect();
+            let wallets: Vec<Address> = chain_config
+                .wallets
+                .iter()
+                .map(|s| Address::from_str(s).unwrap())
+                .collect();
 
-            let erc20s: Vec<Address> =
-                env::var(format!("{}_ERC20_ADDRESSES", chain.to_uppercase()))
-                    .unwrap()
-                    .split(',')
-                    .map(|s| Address::from_str(s.trim_start_matches("0x")).unwrap())
-                    .collect();
-
-            let erc20s = join_all(erc20s.iter().map(|addr| {
-                IndexableTokenERC20::new(*addr, chain.to_string(), provider_arc.clone())
-            }))
+            let erc20s = join_all(
+                chain_config
+                    .tokens
+                    .iter()
+                    .map(|(_token_slug, token_config)| {
+                        IndexableTokenERC20::new(
+                            token_config,
+                            chain_slug.clone(),
+                            provider_arc.clone(),
+                        )
+                    }),
+            )
             .await;
 
             chains.push(Chain {
-                name: chain.to_string(),
+                name: chain_slug,
                 url,
                 wallets,
                 erc20s,
