@@ -1,6 +1,6 @@
 [tokens.eth]
 rpc_url = "https://eth.blockscout.com/api/eth-rpc"
-wallets = [""]
+wallets = ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"]
 
 [tokens.eth.usdc]
 address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
@@ -12,11 +12,13 @@ fixed_rate = 1.0
 
 [tokens.eth.steth]
 address = "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"
-# uniswap_v3 = ""
+# Use WETH/USDC pool to calculate stETH/USDC price
+uniswap_v3 = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 
 [tokens.eth.ens]
 address = "0xc18360217d8f7ab5e7c516566761ea12ce7f9d72"
-# uniswap_v2 = ""
+# Use ENS/USDC pool to calculate ENS/USDC price
+uniswap_v2 = "0xb169c3e8dda6456a18aefa49c58f7f53e120a9b4"
 
 [tokens.polygon]
 rpc_url = "https://polygon.blockscout.com/api/eth-rpc"
