@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use alloy::{primitives::map::HashMap, providers::DynProvider};
 use figment::{
     providers::{Format, Toml},
@@ -7,7 +5,7 @@ use figment::{
 };
 use serde::Deserialize;
 
-use crate::{quoters::{QuoterInstance, fixed::FixedTracker, uniswap::v2::quoter::{UniswapV2Config, UniswapV2Quoter}}, shared::quoter::Quoter};
+use crate::{trackers::{QuoterInstance, fixed::FixedTracker, uniswap::v2::quoter::{UniswapV2Config, UniswapV2Quoter}}, shared::quoter::Quoter};
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Config {

@@ -2,7 +2,7 @@ use std::future::Future;
 
 use alloy::primitives::U256;
 
-use crate::{quoters::{fixed::FixedTracker, uniswap::v2::quoter::UniswapV2Quoter}, shared::{quoter::Quoter, token::LocalTokenOrFiat}};
+use crate::{trackers::{fixed::FixedTracker, uniswap::v2::quoter::UniswapV2Quoter}, shared::{quoter::Quoter, token::LocalTokenOrFiat}};
 
 pub mod fixed;
 pub mod uniswap;

@@ -41,25 +41,6 @@ impl UniswapV2Quoter {
     }
 }
 
-impl Quoter for UniswapV2Quoter {
-    fn get_slug(&self) -> String {
-        format!("uniswap_v2:{}:{}:{}", self.pair_address, self.token0, self.token1)
-    }
-
-    fn get_tokens(&self) -> (LocalTokenOrFiat, LocalTokenOrFiat) {
-        (self.token0.into(), self.token1.into())
-    }
-
-    async fn get_rate(&self, amount_in: U256) -> U256 {
-        // let fr = &pair;
-
-        // let rate = fr.getRate(amount_in).call().await?;
-        // Ok(rate)
-
-        U256::from(0)
-    }
-}
-
 impl UniswapV2Quoter {
     pub async fn from_selector(provider: Box<DynProvider>, selector: UniswapV2Selector) -> Self {
         let factory_address = address!("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f");
@@ -78,5 +59,24 @@ impl UniswapV2Quoter {
                 Self::from_contract(pair).await
             }
         }
+    }
+}
+
+impl Quoter for UniswapV2Quoter {
+    fn get_slug(&self) -> String {
+        format!("uniswap_v2:{}:{}:{}", self.pair_address, self.token0, self.token1)
+    }
+
+    fn get_tokens(&self) -> (LocalTokenOrFiat, LocalTokenOrFiat) {
+        (self.token0.into(), self.token1.into())
+    }
+
+    async fn get_rate(&self, amount_in: U256) -> U256 {
+        // let fr = &pair;
+
+        // let rate = fr.getRate(amount_in).call().await?;
+        // Ok(rate)
+
+        U256::from(0)
     }
 }

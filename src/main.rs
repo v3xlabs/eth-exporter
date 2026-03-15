@@ -1,4 +1,4 @@
-use alloy::{primitives::address, providers::{Provider, ProviderBuilder}};
+use alloy::{primitives::{U256, address}, providers::{Provider, ProviderBuilder}};
 use futures::StreamExt;
 
 use crate::{config::Config, shared::quoter::Quoter};
@@ -7,7 +7,7 @@ pub mod shared;
 // #[cfg(test)]
 pub mod tests;
 pub mod config;
-pub mod quoters;
+pub mod trackers;
 
 #[tokio::main]
 pub async fn main() {
@@ -30,6 +30,12 @@ pub async fn main() {
         // TODO: turn all trackers into quoters
         for tracker in chain_config.trackers.all(&box_provider).await {
             println!("tracker: {:?}", tracker.get_slug());
+            let tokens = tracker.get_tokens();
+            println!("tokens: {:?}", tokens);
+            let amount = U256::from(10).pow(U256::from(6));
+            let rate = tracker.get_rate(amount).await;
+            println!("rate: {:?}", rate);
+            //
         }
     }
 }
