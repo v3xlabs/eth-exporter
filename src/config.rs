@@ -48,6 +48,7 @@ impl TrackersConfig {
 pub struct TokenConfig {
     pub address: String,
     pub slug: Option<String>,
+    pub decimals: u8,
 }
 
 impl Config {

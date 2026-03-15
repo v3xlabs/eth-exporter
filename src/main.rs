@@ -15,12 +15,12 @@ pub async fn main() {
 
     let config = Config::load("config.toml").await;
 
-    println!("config: {:?}", config);
-
     for (chain_slug, chain_config) in config.chains {
+        println!("chain: {:?}", chain_slug);
         let url = chain_config.rpc_url;
         let provider = ProviderBuilder::new().connect(&url).await.unwrap();
 
+        println!("tokens: {:?}", chain_config.tokens.len());
         for token_config in chain_config.tokens {
             let token_address = token_config.address;
             println!("token: {:?}", token_address);
