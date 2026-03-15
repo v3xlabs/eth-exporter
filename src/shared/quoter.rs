@@ -9,4 +9,5 @@ pub trait Quoter {
 
     fn get_tokens(&self) -> (Address, Address);
     fn get_rate(&self, amount_in: U256) -> impl Future<Output = U256> + Send;
+    fn get_slug(&self) -> String;
 }

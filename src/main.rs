@@ -21,9 +21,9 @@ pub async fn main() {
         let url = chain_config.rpc_url;
         let provider = ProviderBuilder::new().connect(&url).await.unwrap();
 
-        for (token_slug, token_config) in chain_config.tokens {
+        for token_config in chain_config.tokens {
             let token_address = token_config.address;
-            println!("token: {} > {:?}", token_slug, token_address);
+            println!("token: {} > {:?}", token_config.slug.unwrap_or_else(|| token_address.to_string()), token_address);
         }
 
         // TODO: turn all trackers into quoters

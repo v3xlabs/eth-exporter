@@ -41,6 +41,10 @@ impl UniswapV2Quoter {
 impl Quoter for UniswapV2Quoter {
     type Selector = UniswapV2Selector;
 
+    fn get_slug(&self) -> String {
+        format!("uniswap_v2:{}:{}:{}", self.pair_address, self.token0, self.token1)
+    }
+
     async fn from_selector(provider: Box<DynProvider>, selector: Self::Selector) -> Self {
         let factory_address = address!("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f");
 

@@ -13,7 +13,7 @@ pub struct Config {
 pub struct ChainConfig {
     pub chain_id: u64,
     pub rpc_url: String,
-    pub tokens: HashMap<String, TokenConfig>,
+    pub tokens: Vec<TokenConfig>,
     pub trackers: TrackersConfig,
 }
 
@@ -26,6 +26,7 @@ pub struct TrackersConfig {
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct TokenConfig {
     pub address: String,
+    pub slug: Option<String>,
 }
 
 impl Config {

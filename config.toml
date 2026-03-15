@@ -2,13 +2,13 @@
 chain_id = 1
 rpc_url = "https://reth-ethereum.ithaca.xyz/rpc"
 
-[chains.ethereum.tokens.usdc]
+[[chains.ethereum.tokens]]
 address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
 
-[chains.ethereum.tokens.aave_usdc]
+[[chains.ethereum.tokens]]
 address = "0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c"
 
-[chains.ethereum.trackers.fixed.usdc]
+[[chains.ethereum.trackers.fixed]]
 token_in = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
 token_out = "fiat:usdc"
 fixed_rate = 1.0
