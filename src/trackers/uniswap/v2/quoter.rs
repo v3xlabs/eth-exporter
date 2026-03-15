@@ -1,10 +1,8 @@
-use std::future::Future;
-
 use alloy::{primitives::{Address, U256, address}, providers::DynProvider};
 use serde::Deserialize;
 use super::pair::UniswapV2Pair::{self, UniswapV2PairInstance};
 
-use crate::shared::{quoter::Quoter, token::LocalTokenOrFiat};
+use crate::{token::local::LocalTokenOrFiat, trackers::Quoter};
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct UniswapV2Config {

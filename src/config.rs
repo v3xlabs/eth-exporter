@@ -5,7 +5,7 @@ use figment::{
 };
 use serde::Deserialize;
 
-use crate::{trackers::{QuoterInstance, fixed::FixedTracker, uniswap::v2::quoter::{UniswapV2Config, UniswapV2Quoter}}, shared::quoter::Quoter};
+use crate::{trackers::{QuoterInstance, fixed::FixedTracker, uniswap::v2::quoter::{UniswapV2Config, UniswapV2Quoter}}, trackers::Quoter};
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Config {

@@ -1,13 +1,12 @@
-use alloy::{primitives::{U256, address}, providers::{Provider, ProviderBuilder}};
-use futures::StreamExt;
+use alloy::{primitives::U256, providers::{Provider, ProviderBuilder}};
 
-use crate::{config::Config, shared::quoter::Quoter};
+use crate::{config::Config, trackers::Quoter};
 
-pub mod shared;
-// #[cfg(test)]
-pub mod tests;
 pub mod config;
 pub mod trackers;
+pub mod token;
+// #[cfg(test)]
+pub mod tests;
 
 #[tokio::main]
 pub async fn main() {

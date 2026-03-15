@@ -1,9 +1,7 @@
-use std::future::Future;
-
 use alloy::primitives::U256;
 use serde::Deserialize;
 
-use crate::shared::{quoter::Quoter, token::LocalTokenOrFiat};
+use crate::{token::local::LocalTokenOrFiat, trackers::Quoter};
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct FixedTracker {

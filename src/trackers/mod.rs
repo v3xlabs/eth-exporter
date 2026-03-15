@@ -1,11 +1,15 @@
-use std::future::Future;
-
 use alloy::primitives::U256;
 
-use crate::{trackers::{fixed::FixedTracker, uniswap::v2::quoter::UniswapV2Quoter}, shared::{quoter::Quoter, token::LocalTokenOrFiat}};
+use crate::{token::local::LocalTokenOrFiat, trackers::{fixed::FixedTracker, uniswap::v2::quoter::UniswapV2Quoter}};
 
 pub mod fixed;
 pub mod uniswap;
+
+pub trait Quoter: Send + Sync {
+    fn get_tokens(&self) -> (LocalTokenOrFiat, LocalTokenOrFiat);
+    async fn get_rate(&self, amount_in: U256) -> U256;
+    fn get_slug(&self) -> String;
+}
 
 #[derive(Debug, Clone)]
 pub enum QuoterInstance {
