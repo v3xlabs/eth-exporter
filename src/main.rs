@@ -1,7 +1,7 @@
-use alloy::primitives::address;
+use alloy::{primitives::address, providers::ProviderBuilder};
 use futures::StreamExt;
 
-use crate::config::Config;
+use crate::{config::Config, shared::quoter::Quoter};
 
 pub mod shared;
 // #[cfg(test)]
@@ -17,11 +17,15 @@ pub async fn main() {
 
     println!("config: {:?}", config);
 
-    // let factory_address = address!("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f");
-    // let provider = tests::get_test_provider().await;
-    // let mut pairs = Box::pin(uniswap::v2::factory::fetch_all_pairs(provider, factory_address));
+    for (chain_slug, chain_config) in config.chains {
+        let url = chain_config.rpc_url;
+        let provider = ProviderBuilder::new().connect(&url).await.unwrap();
 
-    // while let Some(pair) = pairs.as_mut().next().await {
-    //     println!("pair: {:?}", pair);
-    // }
+        for (token_slug, token_config) in chain_config.tokens {
+            let token_address = token_config.address;
+            println!("token: {} > {:?}", token_slug, token_address);
+        }
+
+        // TODO: turn all trackers into quoters
+    }
 }

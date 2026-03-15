@@ -2,7 +2,7 @@ use alloy::primitives::map::HashMap;
 use figment::{Figment, providers::{Format, Toml}};
 use serde::Deserialize;
 
-use crate::quoters::{fixed::FixedTrackerConfig, uniswap::v2::quoter::{UniswapV2Config, UniswapV2Selector}};
+use crate::{quoters::{fixed::FixedTrackerConfig, uniswap::v2::quoter::{UniswapV2Config, UniswapV2Quoter, UniswapV2Selector}}, shared::quoter::Quoter};
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Config {
@@ -19,14 +19,13 @@ pub struct ChainConfig {
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct TrackersConfig {
-    pub fixed: HashMap<String, FixedTrackerConfig>,
+    pub fixed: Vec<FixedTrackerConfig>,
     pub uniswap_v2: UniswapV2Config,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct TokenConfig {
     pub address: String,
-    pub fixed_rate: Option<f64>,
 }
 
 impl Config {

@@ -1,4 +1,4 @@
-use alloy::{primitives::{Address, U256, address, map::HashMap}, providers::DynProvider};
+use alloy::{primitives::{Address, U256, address}, providers::DynProvider};
 use serde::Deserialize;
 use super::pair::UniswapV2Pair::{self, UniswapV2PairInstance};
 
@@ -7,8 +7,7 @@ use crate::{shared::quoter::Quoter};
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct UniswapV2Config {
     pub factory_address: Address,
-    #[serde(flatten)]
-    pub pairs: HashMap<String, UniswapV2Selector>,
+    pub pairs: Vec<UniswapV2Selector>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
