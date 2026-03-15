@@ -1,10 +1,26 @@
-use alloy::{primitives::{Address, U256, address}, providers::DynProvider};
+use alloy::{primitives::{Address, U256, address, map::HashMap}, providers::DynProvider};
+use serde::Deserialize;
+use super::pair::UniswapV2Pair::{self, UniswapV2PairInstance};
 
-use crate::{shared::quoter::Quoter, uniswap::v2::pair::UniswapV2Pair::{self, UniswapV2PairInstance}};
+use crate::{shared::quoter::Quoter};
 
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct UniswapV2Config {
+    pub factory_address: Address,
+    #[serde(flatten)]
+    pub pairs: HashMap<String, UniswapV2Selector>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(untagged)]
 pub enum UniswapV2Selector {
-    IO(Address, Address),
-    Pair(Address)
+    IO {
+        token_in: Address,
+        token_out: Address,
+    },
+    Pair {
+        pair_address: Address,
+    }
 }
 
 pub struct UniswapV2Quoter {
@@ -30,14 +46,14 @@ impl Quoter for UniswapV2Quoter {
         let factory_address = address!("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f");
 
         match selector {
-            UniswapV2Selector::IO(token_in, token_out) => {
+            UniswapV2Selector::IO { token_in, token_out } => {
                 let pair_address = super::factory::fetch_pair(&provider, factory_address, token_in, token_out).await.unwrap();
 
                 let (token0, token1) = if token_in < token_out { (token_in, token_out) } else { (token_out, token_in) };
 
                 Self { pair_address, token0, token1 }
             }
-            UniswapV2Selector::Pair(pair_address) => {
+            UniswapV2Selector::Pair { pair_address } => {
                 let pair = UniswapV2Pair::new(pair_address, provider);
 
                 Self::from_contract(pair).await

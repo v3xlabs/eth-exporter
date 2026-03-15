@@ -14,3 +14,4 @@ serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0"
 async-stream = "0.3.6"
+figment = { version = "0.10.19", features = ["toml"] }

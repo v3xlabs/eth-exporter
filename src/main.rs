@@ -1,14 +1,21 @@
 use alloy::primitives::address;
 use futures::StreamExt;
 
+use crate::config::Config;
+
 pub mod shared;
 // #[cfg(test)]
 pub mod tests;
-pub mod uniswap;
+pub mod config;
+pub mod quoters;
 
 #[tokio::main]
 pub async fn main() {
     println!("Hello, world!");
+
+    let config = Config::load("config.toml").await;
+
+    println!("config: {:?}", config);
 
     // let factory_address = address!("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f");
     // let provider = tests::get_test_provider().await;
