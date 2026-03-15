@@ -1,39 +1,24 @@
-use alloy::{primitives::{Address, U256}, providers::DynProvider};
+use std::future::Future;
+
+use alloy::primitives::U256;
 use serde::Deserialize;
 
-use crate::shared::quoter::Quoter;
+use crate::shared::{quoter::Quoter, token::LocalTokenOrFiat};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct FixedTracker {
-    pub token_in: String,
-    pub token_out: String,
-    pub fixed_rate: f64,
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct FixedTrackerConfig {
-    pub token_in: String,
-    pub token_out: String,
+    pub token_in: LocalTokenOrFiat,
+    pub token_out: LocalTokenOrFiat,
     pub fixed_rate: f64,
 }
 
 impl Quoter for FixedTracker {
-    type Selector = FixedTrackerConfig;
-
     fn get_slug(&self) -> String {
         format!("fixed:{}:{}", self.token_in, self.token_out)
     }
 
-    async fn from_selector(provider: Box<DynProvider>, selector: Self::Selector) -> Self {
-        Self {
-            token_in: selector.token_in,
-            token_out: selector.token_out,
-            fixed_rate: selector.fixed_rate,
-        }
-    }
-
-    fn get_tokens(&self) -> (Address, Address) {
-        (self.token_in.parse().unwrap(), self.token_out.parse().unwrap())
+    fn get_tokens(&self) -> (LocalTokenOrFiat, LocalTokenOrFiat) {
+        (self.token_in.clone(), self.token_out.clone().into())
     }
 
     async fn get_rate(&self, amount_in: U256) -> U256 {

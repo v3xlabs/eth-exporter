@@ -1,4 +1,4 @@
-use alloy::{primitives::address, providers::ProviderBuilder};
+use alloy::{primitives::address, providers::{Provider, ProviderBuilder}};
 use futures::StreamExt;
 
 use crate::{config::Config, shared::quoter::Quoter};
@@ -23,9 +23,13 @@ pub async fn main() {
 
         for token_config in chain_config.tokens {
             let token_address = token_config.address;
-            println!("token: {} > {:?}", token_config.slug.unwrap_or_else(|| token_address.to_string()), token_address);
+            println!("token: {:?}", token_address);
         }
 
+        let box_provider = Box::new(provider.erased());
         // TODO: turn all trackers into quoters
+        for tracker in chain_config.trackers.all(&box_provider).await {
+            println!("tracker: {:?}", tracker.get_slug());
+        }
     }
 }
