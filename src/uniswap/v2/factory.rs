@@ -18,13 +18,18 @@ pub fn fetch_all_pairs<'a>(
     factory_address: Address,
 ) -> impl Stream<Item = Address> + 'a {
     stream! {
-        let max = 10;
         let factory = UniswapV2Factory::new(factory_address, provider);
         let fr = &factory;
+        let max = fr.allPairsLength().call().await.unwrap();
 
-        for state in 0..max {
+        let mut state = U256::from(0);
+        while state < max {
+            
             let pair = fr.allPairs(U256::from(state)).call().await.unwrap();
+            
             yield pair;
+
+            state += U256::from(1);
         }
     }
 }
