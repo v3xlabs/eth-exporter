@@ -1,10 +1,16 @@
-use alloy::{primitives::U256, providers::{Provider, ProviderBuilder}};
+use alloy::{
+    primitives::U256,
+    providers::{Provider, ProviderBuilder},
+};
 
-use crate::{config::Config, trackers::Quoter};
+use crate::{
+    config::Config,
+    trackers::{Quoter, RateDirection},
+};
 
 pub mod config;
-pub mod trackers;
 pub mod token;
+pub mod trackers;
 // #[cfg(test)]
 pub mod tests;
 
@@ -26,15 +32,32 @@ pub async fn main() {
         }
 
         let box_provider = Box::new(provider.erased());
+
+        let block = box_provider.get_block_number().await.unwrap();
+
         // TODO: turn all trackers into quoters
         for tracker in chain_config.trackers.all(&box_provider).await {
             println!("tracker: {:?}", tracker.get_slug());
-            let tokens = tracker.get_tokens();
-            println!("tokens: {:?}", tokens);
-            let amount = U256::from(10).pow(U256::from(6));
-            let rate = tracker.get_rate(amount).await;
-            println!("rate: {:?}", rate);
-            //
+            let (token_a, token_b) = tracker.get_tokens();
+            let amount_a = token_a.nominal_amount(&box_provider).await;
+            let amount_b = token_b.nominal_amount(&box_provider).await;
+
+            let forward_rate = tracker
+                .get_rate(amount_a, RateDirection::Forward, block)
+                .await;
+            let reverse_rate = tracker
+                .get_rate(amount_b, RateDirection::Reverse, block)
+                .await;
+            println!(
+                "forward_rate: {:?} = {:?}",
+                token_a.format_amount(amount_a, 2, &box_provider).await,
+                token_b.format_amount(forward_rate, 2, &box_provider).await
+            );
+            println!(
+                "reverse_rate: {:?} = {:?}",
+                token_b.format_amount(amount_b, 2, &box_provider).await,
+                token_a.format_amount(reverse_rate, 2, &box_provider).await
+            );
         }
     }
 }

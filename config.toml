@@ -27,6 +27,9 @@ token_in = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
 token_out = "fiat:usdc"
 fixed_rate = 1.0
 
+[[chains.ethereum.trackers.erc4626]]
+vault_address = "0x0c6aec603d48eBf1cECc7b247a2c3DA08b398DC1"
+
 [chains.ethereum.trackers.uniswap_v2]
 factory_address = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 

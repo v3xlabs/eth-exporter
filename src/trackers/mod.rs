@@ -1,13 +1,19 @@
-use alloy::primitives::U256;
+use alloy::{primitives::{BlockNumber, U256}};
 
-use crate::{token::local::LocalTokenOrFiat, trackers::{fixed::FixedTracker, uniswap::v2::quoter::UniswapV2Quoter}};
+use crate::{token::local::LocalTokenOrFiat, trackers::{erc4626::ERC4626Quoter, fixed::FixedTracker, uniswap::v2::quoter::UniswapV2Quoter}};
 
 pub mod fixed;
 pub mod uniswap;
+pub mod erc4626;
+
+pub enum RateDirection {
+    Forward,
+    Reverse,
+}
 
 pub trait Quoter: Send + Sync {
     fn get_tokens(&self) -> (LocalTokenOrFiat, LocalTokenOrFiat);
-    async fn get_rate(&self, amount_in: U256) -> U256;
+    async fn get_rate(&self, amount_in: U256, direction: RateDirection, block: BlockNumber) -> U256;
     fn get_slug(&self) -> String;
 }
 
@@ -15,6 +21,7 @@ pub trait Quoter: Send + Sync {
 pub enum QuoterInstance {
     Fixed(FixedTracker),
     UniswapV2(UniswapV2Quoter),
+    ERC4626(ERC4626Quoter),
 }
 
 impl Quoter for QuoterInstance {
@@ -22,6 +29,7 @@ impl Quoter for QuoterInstance {
         match self {
             QuoterInstance::Fixed(tracker) => tracker.get_slug(),
             QuoterInstance::UniswapV2(quoter) => quoter.get_slug(),
+            QuoterInstance::ERC4626(quoter) => quoter.get_slug(),
         }
     }
 
@@ -29,13 +37,15 @@ impl Quoter for QuoterInstance {
         match self {
             QuoterInstance::Fixed(tracker) => tracker.get_tokens(),
             QuoterInstance::UniswapV2(quoter) => quoter.get_tokens(),
+            QuoterInstance::ERC4626(quoter) => quoter.get_tokens(),
         }
     }
 
-    async fn get_rate(&self, amount_in: U256) -> U256 {
+    async fn get_rate(&self, amount_in: U256, direction: RateDirection, block: BlockNumber) -> U256 {
         match self {
-            QuoterInstance::Fixed(tracker) => tracker.get_rate(amount_in).await,
-            QuoterInstance::UniswapV2(quoter) => quoter.get_rate(amount_in).await,
+            QuoterInstance::Fixed(tracker) => tracker.get_rate(amount_in, direction, block).await,
+            QuoterInstance::UniswapV2(quoter) => quoter.get_rate(amount_in, direction, block).await,
+            QuoterInstance::ERC4626(quoter) => quoter.get_rate(amount_in, direction, block).await,
         }
     }
 }

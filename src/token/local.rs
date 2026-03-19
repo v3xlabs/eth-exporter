@@ -1,12 +1,37 @@
 use std::fmt::Display;
 
-use alloy::primitives::Address;
+use alloy::{primitives::{Address, U256}, providers::DynProvider};
 use serde::{Deserialize, Deserializer};
+
+use crate::token::erc20::ERC20Token;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum LocalTokenOrFiat {
     ERC20 { address: Address },
     Fiat { symbol: String },
+}
+
+const FIAT_DECIMALS: u32 = 6;
+
+impl LocalTokenOrFiat {
+    pub async fn nominal_amount(&self, provider: &DynProvider) -> U256 {
+        match self {
+            LocalTokenOrFiat::ERC20 { address } => ERC20Token::new(*address, provider).await.nominal_amount().await,
+            LocalTokenOrFiat::Fiat {symbol: _} => U256::from(10_u64.pow(FIAT_DECIMALS)),
+        }
+    }
+
+    pub async fn format_amount(&self, amount: U256, precision: usize, provider: &DynProvider) -> String {
+        match self {
+            LocalTokenOrFiat::ERC20 { address } => ERC20Token::new(*address, provider).await.format_amount(amount, precision).await,
+            // TODO: verify the f64 math vs u256 math with precision offset exponent
+            LocalTokenOrFiat::Fiat {symbol: _} => {
+                let amount = amount.to_string().parse::<f64>().unwrap() / 10_f64.powf(FIAT_DECIMALS as f64);
+
+                format!("{:.precision$}", amount)
+            },
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for LocalTokenOrFiat {

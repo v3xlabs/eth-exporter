@@ -1,8 +1,8 @@
-use alloy::{primitives::{Address, U256, address}, providers::DynProvider};
+use alloy::{primitives::{Address, BlockNumber, U256, address}, providers::DynProvider};
 use serde::Deserialize;
 use super::pair::UniswapV2Pair::{self, UniswapV2PairInstance};
 
-use crate::{token::local::LocalTokenOrFiat, trackers::Quoter};
+use crate::{token::local::LocalTokenOrFiat, trackers::{Quoter, RateDirection}};
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct UniswapV2Config {
@@ -30,7 +30,7 @@ pub struct UniswapV2Quoter {
 }
 
 impl UniswapV2Quoter {
-    pub async fn from_contract(contract: UniswapV2PairInstance<Box<DynProvider>>) -> Self {
+    pub async fn from_contract(contract: UniswapV2PairInstance<&DynProvider>) -> Self {
         let pair_address = *contract.address();
         let token0 = contract.token0().call().await.unwrap();
         let token1 = contract.token1().call().await.unwrap();
@@ -40,7 +40,7 @@ impl UniswapV2Quoter {
 }
 
 impl UniswapV2Quoter {
-    pub async fn from_selector(provider: Box<DynProvider>, selector: UniswapV2Selector) -> Self {
+    pub async fn from_selector(provider: &DynProvider, selector: UniswapV2Selector) -> Self {
         let factory_address = address!("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f");
 
         match selector {
@@ -69,11 +69,8 @@ impl Quoter for UniswapV2Quoter {
         (self.token0.into(), self.token1.into())
     }
 
-    async fn get_rate(&self, amount_in: U256) -> U256 {
-        // let fr = &pair;
-
-        // let rate = fr.getRate(amount_in).call().await?;
-        // Ok(rate)
+    async fn get_rate(&self, amount_in: U256, direction: RateDirection, block: BlockNumber) -> U256 {
+        println!("uniswap_v2:{}:{}:{}", self.pair_address, self.token0, self.token1);
 
         U256::from(0)
     }
