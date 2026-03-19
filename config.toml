@@ -40,3 +40,19 @@ pair_address = "0xB87b65Dacc6171B3ca8c4A934601d0FcB6c61049"
 # stEth/wETH
 [[chains.ethereum.trackers.uniswap_v2.pairs]]
 pair_address = "0x4028DAAC072e492d34a3Afdbef0ba7e35D8b55C4"
+
+# wBTC/USDC
+[[chains.ethereum.trackers.uniswap_v3.pools]]
+pool_address = "0x99ac8ca7087fa4a2a1fb6357269965a2014abc35"
+
+# Aave/USDC
+[[chains.ethereum.trackers.uniswap_v3.pools]]
+pool_address = "0xdceaf5d0e5e0db9596a47c0c4120654e80b1d706"
+
+# USDC/wETH
+[[chains.ethereum.trackers.uniswap_v3.pools]]
+pool_address = "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
+
+# xAUT/USDT
+[[chains.ethereum.trackers.uniswap_v3.pools]]
+pool_address = "0x6546055f46e866a4b9a4a13e81273e3152bae5da"

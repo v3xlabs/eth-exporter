@@ -1,11 +1,3 @@
-use alloy::sol;
-
-sol! {
-    #[sol(rpc)]
-    contract UniswapV3Pool {
-         function slot0() public view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
-    }
-}
 
 // #[derive(Debug, Serialize, Deserialize, Clone)]
 // pub struct UniswapV3QuoterConfig {
