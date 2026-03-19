@@ -35,6 +35,8 @@ pub async fn main() {
 
         let block = box_provider.get_block_number().await.unwrap();
 
+        let precision = 10;
+
         // TODO: turn all trackers into quoters
         for tracker in chain_config.trackers.all(&box_provider).await {
             println!("tracker: {:?}", tracker.get_slug());
@@ -50,13 +52,13 @@ pub async fn main() {
                 .await;
             println!(
                 "forward_rate: {:?} = {:?}",
-                token_a.format_amount(amount_a, 2, &box_provider).await,
-                token_b.format_amount(forward_rate, 2, &box_provider).await
+                token_a.format_amount(amount_a, precision, &box_provider).await,
+                token_b.format_amount(forward_rate, precision, &box_provider).await
             );
             println!(
                 "reverse_rate: {:?} = {:?}",
-                token_b.format_amount(amount_b, 2, &box_provider).await,
-                token_a.format_amount(reverse_rate, 2, &box_provider).await
+                token_b.format_amount(amount_b, precision, &box_provider).await,
+                token_a.format_amount(reverse_rate, precision, &box_provider).await
             );
         }
     }
