@@ -32,6 +32,13 @@ impl LocalTokenOrFiat {
             },
         }
     }
+
+    pub async fn symbol(&self, provider: &DynProvider) -> String {
+        match self {
+            LocalTokenOrFiat::ERC20 { address } => ERC20Token::new(*address, provider).await.name.lock().await.clone(),
+            LocalTokenOrFiat::Fiat {symbol: _} => "fiat".to_string(),
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for LocalTokenOrFiat {

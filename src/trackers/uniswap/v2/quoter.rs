@@ -128,21 +128,19 @@ impl Quoter for UniswapV2Quoter {
                 println!("scale: {:?}", scale);
 
                 let numerator = amount_in * reserve1;
-                let denominator = reserve0 + amount_in;
+                let denominator = reserve0;
 
                 let amount_out = numerator / denominator;
 
                 U256::from(amount_out)
             }
             RateDirection::Reverse => {
-                let rate = reserve1 * scale / reserve0;
+                let numerator = amount_in * reserve0;
+                let denominator = reserve1;
 
-                amount_in
-                    .wrapping_mul(rate)
-                    .div_ceil(scale)
-                    .to_string()
-                    .parse::<U256>()
-                    .unwrap()
+                let amount_out = numerator / denominator;
+
+                U256::from(amount_out)
             }
         }
     }

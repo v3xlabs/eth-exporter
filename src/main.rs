@@ -51,14 +51,18 @@ pub async fn main() {
                 .get_rate(amount_b, RateDirection::Reverse, block)
                 .await;
             println!(
-                "forward_rate: {:?} = {:?}",
+                "forward_rate: {:?} {} = {:?} {}",
                 token_a.format_amount(amount_a, precision, &box_provider).await,
-                token_b.format_amount(forward_rate, precision, &box_provider).await
+                token_a.symbol(&box_provider).await,
+                token_b.format_amount(forward_rate, precision, &box_provider).await,
+                token_b.symbol(&box_provider).await
             );
             println!(
-                "reverse_rate: {:?} = {:?}",
+                "reverse_rate: {:?} {} = {:?} {}",
                 token_b.format_amount(amount_b, precision, &box_provider).await,
-                token_a.format_amount(reverse_rate, precision, &box_provider).await
+                token_b.symbol(&box_provider).await,
+                token_a.format_amount(reverse_rate, precision, &box_provider).await,
+                token_a.symbol(&box_provider).await
             );
         }
     }
