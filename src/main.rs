@@ -2,80 +2,29 @@ use alloy::providers::{DynProvider, Provider, ProviderBuilder};
 use eth_prices::{
     config::Config,
     quoter::Quoter,
-    router::{Route, graph::QuoterGraph},
-    token::{Token, TokenIdentifier},
+    router::{graph::QuoterGraph, Route},
+    token::TokenIdentifier,
 };
 use poem::{
-    EndpointExt, Route as PoemRoute, Server, get, handler, listener::TcpListener, web::Data,
-};
-use prometheus_client::{
-    encoding::{EncodeLabelSet, text::encode},
-    metrics::{family::Family, gauge::Gauge},
-    registry::Registry,
+    get, handler, listener::TcpListener, web::Data, EndpointExt, Route as PoemRoute, Server,
 };
 use std::{
     collections::{HashMap, HashSet},
     io::Error,
-    sync::{Arc, atomic::AtomicU64}, time::Duration,
+    sync::Arc,
+    time::Duration,
 };
 use tracing::info;
 
-use crate::cache::PriceCache;
+use crate::{cache::PriceCache, metrics::Metrics};
 
 mod cache;
+mod metrics;
 
 pub struct ChainState {
     provider: DynProvider,
     router: QuoterGraph,
     routes: Vec<Route>,
-}
-
-pub struct Metrics {
-    registry: Registry,
-    token_price_in_usd: Family<TokenLabels, Gauge<f64, AtomicU64>>,
-    block_height: Family<Labels, Gauge<u64, AtomicU64>>,
-}
-
-impl Metrics {
-    async fn compute(&self, state: &AppState) -> anyhow::Result<String> {
-        for (chain_slug, chain) in &state.chains {
-            let block = chain.provider.get_block_number().await.unwrap();
-    
-            state
-                .metrics
-                .block_height
-                .get_or_create(&Labels {
-                    chain: chain_slug.clone(),
-                })
-                .set(block);
-    
-            for route in &chain.routes {
-                let token_input = &route.input_token;
-                let token_input = Token::new(token_input.clone(), &chain.provider)
-                    .await
-                    .unwrap();
-                let amount_in = token_input.nominal_amount().await;
-                let token_output = route.quote(block, amount_in).await.unwrap();
-    
-                let rate: i64 = token_output.to_string().parse().unwrap();
-                let rate = rate as f64 / 10_f64.powf(6_f64);
-    
-                state
-                    .metrics
-                    .token_price_in_usd
-                    .get_or_create(&TokenLabels {
-                        chain: chain_slug.clone(),
-                        token: token_input.symbol.clone(),
-                    })
-                    .set(rate);
-            }
-        }
-    
-        let mut buffer = String::new();
-        encode(&mut buffer, &state.metrics.registry).unwrap();
-    
-        Ok(buffer)
-    }
 }
 
 pub struct AppState {
@@ -84,20 +33,6 @@ pub struct AppState {
     cache: PriceCache,
     chains: HashMap<String, ChainState>,
     metrics: Metrics,
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
-struct TokenLabels {
-    // Use your own enum types to represent label values.
-    chain: String,
-    // Or just a plain string.
-    token: String,
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
-struct Labels {
-    // Use your own enum types to represent label values.
-    chain: String,
 }
 
 pub async fn setup() -> AppState {
@@ -148,27 +83,16 @@ pub async fn setup() -> AppState {
         );
     }
 
-    let mut registry = <Registry>::default();
-
-    let token_price_in_usd = Family::<TokenLabels, Gauge<f64, AtomicU64>>::default();
-    registry.register(
-        "token_price_usd",
-        "Token price in USD",
-        token_price_in_usd.clone(),
-    );
-
-    let block_height = Family::<Labels, Gauge<u64, AtomicU64>>::default();
-    registry.register("block_height", "Block height", block_height.clone());
+    let duration = match std::env::var("EE_CACHE_DURATION") {
+        Ok(duration) => Duration::from_secs(duration.parse().unwrap()),
+        Err(_) => Duration::from_secs(30),
+    };
 
     AppState {
+        cache: PriceCache::new(duration),
+        metrics: Metrics::default(),
         config,
-        cache: PriceCache::new(),
         chains,
-        metrics: Metrics {
-            registry,
-            token_price_in_usd,
-            block_height,
-        },
     }
 }
 
@@ -178,9 +102,14 @@ fn index() -> String {
 }
 
 #[handler]
-async fn metrics(state: Data<&Arc<AppState>>) -> String {
+async fn get_metrics(state: Data<&Arc<AppState>>) -> String {
     // state.metrics.compute(state.as_ref()).await.unwrap()
-    state.cache.get_or_compute(Duration::from_secs(16), state.as_ref()).await.unwrap().to_string()
+    state
+        .cache
+        .get_or_compute(state.as_ref())
+        .await
+        .unwrap()
+        .to_string()
 }
 
 #[tokio::main]
@@ -191,7 +120,7 @@ pub async fn main() -> Result<(), Error> {
 
     let app = PoemRoute::new()
         .at("/", get(index))
-        .at("/metrics", get(metrics))
+        .at("/metrics", get(get_metrics))
         .data(Arc::new(state));
 
     Server::new(TcpListener::bind("0.0.0.0:3000"))

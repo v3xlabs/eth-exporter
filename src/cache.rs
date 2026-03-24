@@ -6,6 +6,7 @@ use crate::AppState;
 
 pub struct PriceCache {
     inner: Mutex<PriceMutex>,
+    duration: Duration,
 }
 
 pub struct PriceMutex {
@@ -16,7 +17,7 @@ pub struct PriceMutex {
 }
 
 impl PriceCache {
-    pub fn new() -> Self {
+    pub fn new(duration: Duration) -> Self {
         Self {
             inner: Mutex::new(PriceMutex {
                 value: None,
@@ -24,10 +25,11 @@ impl PriceCache {
                 computing: false,
                 notify: Arc::new(Notify::new()),
             }),
+            duration,
         }
     }
 
-    pub async fn get_or_compute(&self, ttl: Duration, state: &AppState) -> anyhow::Result<Arc<String>> {
+    pub async fn get_or_compute(&self, state: &AppState) -> anyhow::Result<Arc<String>> {
         loop {
             let (maybe_cached, should_compute, notify) = {
                 let mut guard = self.inner.lock().await;
@@ -61,7 +63,7 @@ impl PriceCache {
                     Ok(value) => {
                         let value = Arc::new(value);
                         guard.value = Some(value.clone());
-                        guard.expires_at = Some(Instant::now() + ttl);
+                        guard.expires_at = Some(Instant::now() + self.duration);
                         notify.notify_waiters();
                         return Ok(value);
                     }
