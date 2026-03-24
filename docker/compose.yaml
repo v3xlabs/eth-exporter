@@ -1,3 +1,4 @@
+name: eth-exporter
 services:
   eth-exporter:
     image: ghcr.io/v3xlabs/eth-exporter:edge
@@ -7,12 +8,15 @@ services:
       - ./config.toml:/config.toml
   prometheus:
     image: prom/prometheus
-    # ports:
-    #   - 9090:9090
+    ports:
+      - 9090:9090
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    network_mode: host
   grafana:
     image: grafana/grafana
     ports:
       - 3001:3000
+    volumes:
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
