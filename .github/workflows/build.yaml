@@ -40,17 +40,15 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.platform.arch }}
-          workspaces: app          
 
       # Install cross
       - name: Install cross
         run: cargo install cross
 
-      # Update version number in app/Cargo.toml
+      # Update version number in Cargo.toml
       # If tag is a release use that
-      # Otherwise use the version number in the app/Cargo.toml and append it with -alpha
+      # Otherwise use the version number in the Cargo.toml and append it with -alpha
       - name: Update version number
-        working-directory: app
         run: |
           if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
@@ -65,7 +63,6 @@ jobs:
 
       # 🔨 Build our static binary
       - name: Build Rust binary
-        working-directory: app
         env:
           BINARY_NAME: ${{ env.BINARY_NAME }}
           SQLX_OFFLINE: true # Use prepared SQL queries
@@ -76,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: eth-exporter-${{ matrix.platform.arch }}
-          path: app/target/${{ matrix.platform.arch }}/release/${{ env.BINARY_NAME }}
+          path: target/${{ matrix.platform.arch }}/release/${{ env.BINARY_NAME }}
           retention-days: 1 # Save storage by cleaning up quickly
           compression-level: 9 # Maximum compression
 
@@ -105,12 +102,12 @@ jobs:
         id: eth-exporter-binary
         with:
           name: eth-exporter-${{ matrix.platform.arch }}
-          path: app/artifacts
+          path: artifacts
 
       - name: Prepare artifacts
         run: |
-          chmod 755 ./app/artifacts/eth-exporter
-          ls -la ./app/artifacts
+          chmod 755 ./artifacts/eth-exporter
+          ls -la ./artifacts
 
       # Set up QEMU for multi-arch builds
       - name: Set up QEMU
@@ -140,8 +137,8 @@ jobs:
         uses: docker/build-push-action@v6
         id: build
         with:
-          context: ./app/artifacts
-          file: ./app/Dockerfile
+          context: ./artifacts
+          file: ./Dockerfile
           platforms: ${{ matrix.platform.docker }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
