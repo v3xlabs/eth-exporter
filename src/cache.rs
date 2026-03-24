@@ -1,0 +1,79 @@
+use std::{sync::Arc, time::Duration};
+
+use tokio::{sync::{Mutex, Notify}, time::Instant};
+
+use crate::AppState;
+
+pub struct PriceCache {
+    inner: Mutex<PriceMutex>,
+}
+
+pub struct PriceMutex {
+    value: Option<Arc<String>>,
+    expires_at: Option<Instant>,
+    computing: bool,
+    notify: Arc<Notify>,
+}
+
+impl PriceCache {
+    pub fn new() -> Self {
+        Self {
+            inner: Mutex::new(PriceMutex {
+                value: None,
+                expires_at: None,
+                computing: false,
+                notify: Arc::new(Notify::new()),
+            }),
+        }
+    }
+
+    pub async fn get_or_compute(&self, ttl: Duration, state: &AppState) -> anyhow::Result<Arc<String>> {
+        loop {
+            let (maybe_cached, should_compute, notify) = {
+                let mut guard = self.inner.lock().await;
+                let now = Instant::now();
+
+                if let (Some(value), Some(expires_at)) = (&guard.value, guard.expires_at) {
+                    if now < expires_at {
+                        return Ok(value.clone());
+                    }
+                }
+
+                if guard.computing {
+                    (None, false, guard.notify.clone())
+                } else {
+                    guard.computing = true;
+                    (None, true, guard.notify.clone())
+                }
+            };
+
+            if let Some(v) = maybe_cached {
+                return Ok(v);
+            }
+
+            if should_compute {
+                let result = state.metrics.compute(state).await;
+
+                let mut guard = self.inner.lock().await;
+                guard.computing = false;
+
+                match result {
+                    Ok(value) => {
+                        let value = Arc::new(value);
+                        guard.value = Some(value.clone());
+                        guard.expires_at = Some(Instant::now() + ttl);
+                        notify.notify_waiters();
+                        return Ok(value);
+                    }
+                    Err(err) => {
+                        // wake waiters so they can retry / observe failure path
+                        notify.notify_waiters();
+                        return Err(err);
+                    }
+                }
+            } else {
+                notify.notified().await;
+            }
+        }
+    }
+}

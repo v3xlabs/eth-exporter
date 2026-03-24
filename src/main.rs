@@ -16,9 +16,13 @@ use prometheus_client::{
 use std::{
     collections::{HashMap, HashSet},
     io::Error,
-    sync::{Arc, atomic::AtomicU64},
+    sync::{Arc, atomic::AtomicU64}, time::Duration,
 };
 use tracing::info;
+
+use crate::cache::PriceCache;
+
+mod cache;
 
 pub struct ChainState {
     provider: DynProvider,
@@ -32,9 +36,52 @@ pub struct Metrics {
     block_height: Family<Labels, Gauge<u64, AtomicU64>>,
 }
 
+impl Metrics {
+    async fn compute(&self, state: &AppState) -> anyhow::Result<String> {
+        for (chain_slug, chain) in &state.chains {
+            let block = chain.provider.get_block_number().await.unwrap();
+    
+            state
+                .metrics
+                .block_height
+                .get_or_create(&Labels {
+                    chain: chain_slug.clone(),
+                })
+                .set(block);
+    
+            for route in &chain.routes {
+                let token_input = &route.input_token;
+                let token_input = Token::new(token_input.clone(), &chain.provider)
+                    .await
+                    .unwrap();
+                let amount_in = token_input.nominal_amount().await;
+                let token_output = route.quote(block, amount_in).await.unwrap();
+    
+                let rate: i64 = token_output.to_string().parse().unwrap();
+                let rate = rate as f64 / 10_f64.powf(6_f64);
+    
+                state
+                    .metrics
+                    .token_price_in_usd
+                    .get_or_create(&TokenLabels {
+                        chain: chain_slug.clone(),
+                        token: token_input.symbol.clone(),
+                    })
+                    .set(rate);
+            }
+        }
+    
+        let mut buffer = String::new();
+        encode(&mut buffer, &state.metrics.registry).unwrap();
+    
+        Ok(buffer)
+    }
+}
+
 pub struct AppState {
     #[allow(dead_code)]
     config: Config,
+    cache: PriceCache,
     chains: HashMap<String, ChainState>,
     metrics: Metrics,
 }
@@ -115,6 +162,7 @@ pub async fn setup() -> AppState {
 
     AppState {
         config,
+        cache: PriceCache::new(),
         chains,
         metrics: Metrics {
             registry,
@@ -131,43 +179,8 @@ fn index() -> String {
 
 #[handler]
 async fn metrics(state: Data<&Arc<AppState>>) -> String {
-    for (chain_slug, chain) in &state.chains {
-        let block = chain.provider.get_block_number().await.unwrap();
-
-        state
-            .metrics
-            .block_height
-            .get_or_create(&Labels {
-                chain: chain_slug.clone(),
-            })
-            .set(block);
-
-        for route in &chain.routes {
-            let token_input = &route.input_token;
-            let token_input = Token::new(token_input.clone(), &chain.provider)
-                .await
-                .unwrap();
-            let amount_in = token_input.nominal_amount().await;
-            let token_output = route.quote(block, amount_in).await.unwrap();
-
-            let rate: i64 = token_output.to_string().parse().unwrap();
-            let rate = rate as f64 / 10_f64.powf(6_f64);
-
-            state
-                .metrics
-                .token_price_in_usd
-                .get_or_create(&TokenLabels {
-                    chain: chain_slug.clone(),
-                    token: token_input.symbol.clone(),
-                })
-                .set(rate);
-        }
-    }
-
-    let mut buffer = String::new();
-    encode(&mut buffer, &state.metrics.registry).unwrap();
-
-    buffer
+    // state.metrics.compute(state.as_ref()).await.unwrap()
+    state.cache.get_or_compute(Duration::from_secs(16), state.as_ref()).await.unwrap().to_string()
 }
 
 #[tokio::main]
