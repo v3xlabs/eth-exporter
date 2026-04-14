@@ -1458,6 +1458,7 @@ dependencies = [
  "poem",
  "prometheus-client",
  "serde",
+ "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",
