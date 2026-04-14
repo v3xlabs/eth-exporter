@@ -1,26 +1,7 @@
 [chains.ethereum]
 chain_id = 1
 rpc_url = "https://reth-ethereum.ithaca.xyz/rpc"
-
-[[chains.ethereum.tokens]]
-address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-decimals = 6
-slug = "usdc"
-
-[[chains.ethereum.tokens]]
-address = "0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c"
-decimals = 18
-slug = "aave_ethereum_usdc"
-
-[[chains.ethereum.tokens]]
-address = "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72"
-decimals = 18
-slug = "ens"
-
-[[chains.ethereum.tokens]]
-address = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-decimals = 18
-slug = "weth"
+tokens = []
 
 [[chains.ethereum.quoters.fixed]]
 token_in = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
@@ -66,3 +47,12 @@ fee = 500
 token_in = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
 token_out = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
 fee = 500
+
+[[chains.ethereum.quoters.uniswap_v3.pools]]
+pool_address = "0x95dbb3c7546f22bce375900abfdd64a4e5bd73d6"
+
+[[chains.ethereum.quoters.erc4626]]
+vault_address = "0x5dbf760b4fd0cddde0366b33aeb338b2a6d77725"
+
+[[chains.ethereum.quoters.erc4626]]
+vault_address = "0x0c6aec603d48ebf1cecc7b247a2c3da08b398dc1"
