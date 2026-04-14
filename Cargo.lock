@@ -1450,7 +1450,6 @@ name = "eth-exporter"
 version = "0.0.1"
 dependencies = [
  "alloy",
- "anyhow",
  "async-stream",
  "eth-prices",
  "figment",
@@ -1458,6 +1457,7 @@ dependencies = [
  "poem",
  "prometheus-client",
  "serde",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",

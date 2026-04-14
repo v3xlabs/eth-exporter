@@ -5,7 +5,7 @@ use tokio::{
     time::Instant,
 };
 
-use crate::AppState;
+use crate::{metrics::MetricsError, AppState};
 
 pub struct PriceCache {
     inner: Mutex<PriceMutex>,
@@ -32,7 +32,7 @@ impl PriceCache {
         }
     }
 
-    pub async fn get_or_compute(&self, state: Arc<AppState>) -> anyhow::Result<Arc<String>> {
+    pub async fn get_or_compute(&self, state: Arc<AppState>) -> Result<Arc<String>, MetricsError> {
         loop {
             let (maybe_cached, should_compute, notify) = {
                 let mut guard = self.inner.lock().await;
