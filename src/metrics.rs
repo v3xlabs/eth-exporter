@@ -11,7 +11,7 @@ use prometheus_client::{
 use serde::{Deserialize, Serialize};
 use tokio::time::Instant;
 
-use crate::{AppState, ChainState};
+use crate::state::{AppState, ChainState};
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct TokenLabels {
