@@ -1,7 +1,6 @@
 use alloy::providers::{DynProvider, Provider, ProviderBuilder};
 use eth_prices::{
     config::Config,
-    quoter::Quoter,
     router::{graph::QuoterGraph, Route},
     token::TokenIdentifier,
 };
@@ -36,7 +35,7 @@ pub struct AppState {
 }
 
 pub async fn setup() -> AppState {
-    let config = Config::load("config.toml").await;
+    let config = Config::load("config.toml").await.unwrap();
     let mut chains = HashMap::new();
 
     for (chain_slug, chain_config) in &config.chains {
@@ -46,7 +45,7 @@ pub async fn setup() -> AppState {
             let token_address = token_config.address.clone();
             println!("token: {:?}", token_address);
         }
-        let quoters = chain_config.quoters.all(&provider).await;
+        let quoters = chain_config.quoters.clone().all(&provider).await.unwrap();
         let router = QuoterGraph::from_iter(quoters);
 
         let mut all_tokens = HashSet::new();
