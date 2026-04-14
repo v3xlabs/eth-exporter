@@ -105,7 +105,7 @@ async fn get_metrics(state: Data<&Arc<AppState>>) -> String {
     // state.metrics.compute(state.as_ref()).await.unwrap()
     state
         .cache
-        .get_or_compute(state.as_ref())
+        .get_or_compute(Arc::clone(state.0))
         .await
         .unwrap()
         .to_string()

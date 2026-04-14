@@ -1,7 +1,8 @@
-use std::sync::atomic::AtomicU64;
+use std::sync::{atomic::AtomicU64, Arc};
 
 use alloy::providers::Provider;
 use eth_prices::token::Token;
+use futures::future::try_join_all;
 use prometheus_client::{
     encoding::{text::encode, EncodeLabelSet},
     metrics::{family::Family, gauge::Gauge},
@@ -9,7 +10,7 @@ use prometheus_client::{
 };
 use tokio::time::Instant;
 
-use crate::AppState;
+use crate::{AppState, ChainState};
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct TokenLabels {
@@ -58,46 +59,34 @@ impl Default for Metrics {
 }
 
 impl Metrics {
-    pub async fn compute(&self, state: &AppState) -> anyhow::Result<String> {
-        for (chain_slug, chain) in &state.chains {
+    pub async fn compute(&self, state: Arc<AppState>) -> anyhow::Result<String> {
+        let chains = state.chains.iter().collect::<Vec<_>>();
+        for (chain_slug, chain) in chains {
             let start_time = Instant::now();
-            let block = chain.provider.get_block_number().await.unwrap();
+            let block = chain.provider.get_block_number().await?;
 
             state
                 .metrics
                 .block_height
                 .get_or_create(&Labels {
-                    chain: chain_slug.clone(),
+                    chain: chain_slug.to_string(),
                 })
                 .set(block);
 
-            for route in &chain.routes {
-                let token_input = &route.input_token;
-                let token_input = Token::new(token_input.clone(), &chain.provider)
-                    .await
-                    .unwrap();
-                let amount_in = token_input.nominal_amount().await;
-                let token_output = route.quote(block, amount_in).await.unwrap();
-
-                let rate: i64 = token_output.to_string().parse().unwrap();
-                let rate = rate as f64 / 10_f64.powf(6_f64);
-
-                state
-                    .metrics
-                    .token_price_in_usd
-                    .get_or_create(&TokenLabels {
-                        chain: chain_slug.clone(),
-                        token: token_input.symbol.clone(),
-                    })
-                    .set(rate);
-            }
+            try_join_all(
+                chain
+                    .routes
+                    .iter()
+                    .map(|route| compute_route_metric(&state, chain_slug, chain, route, block)),
+            )
+            .await?;
 
             let duration = start_time.elapsed();
             state
                 .metrics
                 .chain_duration
                 .get_or_create(&Labels {
-                    chain: chain_slug.clone(),
+                    chain: chain_slug.to_string(),
                 })
                 .set(duration.as_millis() as u64);
         }
@@ -107,4 +96,30 @@ impl Metrics {
 
         Ok(buffer)
     }
+}
+
+async fn compute_route_metric(
+    state: &AppState,
+    chain_slug: &str,
+    chain: &ChainState,
+    route: &eth_prices::router::Route,
+    block: u64,
+) -> anyhow::Result<()> {
+    let token_input = Token::new(route.input_token.clone(), &chain.provider).await?;
+    let amount_in = token_input.nominal_amount().await;
+    let token_output = route.quote(block, amount_in).await?;
+
+    let rate: i64 = token_output.to_string().parse().unwrap();
+    let rate = rate as f64 / 10_f64.powf(6_f64);
+
+    state
+        .metrics
+        .token_price_in_usd
+        .get_or_create(&TokenLabels {
+            chain: chain_slug.to_string(),
+            token: token_input.symbol.clone(),
+        })
+        .set(rate);
+
+    Ok(())
 }

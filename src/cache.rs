@@ -1,6 +1,9 @@
 use std::{sync::Arc, time::Duration};
 
-use tokio::{sync::{Mutex, Notify}, time::Instant};
+use tokio::{
+    sync::{Mutex, Notify},
+    time::Instant,
+};
 
 use crate::AppState;
 
@@ -29,7 +32,7 @@ impl PriceCache {
         }
     }
 
-    pub async fn get_or_compute(&self, state: &AppState) -> anyhow::Result<Arc<String>> {
+    pub async fn get_or_compute(&self, state: Arc<AppState>) -> anyhow::Result<Arc<String>> {
         loop {
             let (maybe_cached, should_compute, notify) = {
                 let mut guard = self.inner.lock().await;
@@ -54,7 +57,7 @@ impl PriceCache {
             }
 
             if should_compute {
-                let result = state.metrics.compute(state).await;
+                let result = state.metrics.compute(state.clone()).await;
 
                 let mut guard = self.inner.lock().await;
                 guard.computing = false;
