@@ -5,7 +5,8 @@ use eth_prices::{
     token::TokenIdentifier,
 };
 use poem::{
-    get, handler, listener::TcpListener, web::Data, EndpointExt, Route as PoemRoute, Server,
+    get, handler, listener::TcpListener, middleware::Cors, web::Data, EndpointExt,
+    Route as PoemRoute, Server,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -108,7 +109,21 @@ async fn get_metrics(state: Data<&Arc<AppState>>) -> String {
         .get_or_compute(Arc::clone(state.0))
         .await
         .unwrap()
+        .metrics
+        .clone()
         .to_string()
+}
+
+#[handler]
+async fn get_all_metrics(state: Data<&Arc<AppState>>) -> String {
+    // returns serde json object of cache
+    let data = state
+        .cache
+        .get_or_compute(Arc::clone(state.0))
+        .await
+        .unwrap();
+
+    serde_json::to_string(&data.snapshot).unwrap()
 }
 
 #[tokio::main]
@@ -120,6 +135,7 @@ pub async fn main() -> Result<(), Error> {
     let app = PoemRoute::new()
         .at("/", get(index))
         .at("/metrics", get(get_metrics))
+        .at("/json", get(get_all_metrics).with(Cors::new()))
         .data(Arc::new(state));
 
     Server::new(TcpListener::bind("0.0.0.0:3000"))

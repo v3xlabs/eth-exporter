@@ -5,7 +5,7 @@ use tokio::{
     time::Instant,
 };
 
-use crate::AppState;
+use crate::{AppState, metrics::SnapshotEntry};
 
 pub struct PriceCache {
     inner: Mutex<PriceMutex>,
@@ -13,7 +13,7 @@ pub struct PriceCache {
 }
 
 pub struct PriceMutex {
-    value: Option<Arc<String>>,
+    value: Option<Arc<SnapshotEntry>>,
     expires_at: Option<Instant>,
     computing: bool,
     notify: Arc<Notify>,
@@ -32,7 +32,7 @@ impl PriceCache {
         }
     }
 
-    pub async fn get_or_compute(&self, state: Arc<AppState>) -> anyhow::Result<Arc<String>> {
+    pub async fn get_or_compute(&self, state: Arc<AppState>) -> anyhow::Result<Arc<SnapshotEntry>> {
         loop {
             let (maybe_cached, should_compute, notify) = {
                 let mut guard = self.inner.lock().await;
