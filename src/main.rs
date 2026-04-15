@@ -5,7 +5,8 @@ use eth_prices::{
     token::TokenIdentifier,
 };
 use poem::{
-    get, handler, listener::TcpListener, web::Data, EndpointExt, Route as PoemRoute, Server,
+    get, handler, listener::TcpListener, middleware::Cors, web::Data, EndpointExt,
+    Route as PoemRoute, Server,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -134,7 +135,7 @@ pub async fn main() -> Result<(), Error> {
     let app = PoemRoute::new()
         .at("/", get(index))
         .at("/metrics", get(get_metrics))
-        .at("/json", get(get_all_metrics))
+        .at("/json", get(get_all_metrics).with(Cors::new()))
         .data(Arc::new(state));
 
     Server::new(TcpListener::bind("0.0.0.0:3000"))
